@@ -13,3 +13,13 @@ __pycache__/
 # Stray zips from create-function runs (temp names have no extension)
 lambda/*.zip
 lambda/zi*
+
+# Working diagrams and generated dev references: useful locally, noise in a
+# public repo. The published docs are architecture.*, production-gaps.md and
+# the captured api-responses/.
+docs/trigger-chain.mermaid
+docs/function_examples_call_transcript_collector.md
+docs/pipeline-runbook.mermaid
+docs/calls-pipeline.mermaid
+docs/validation-pipeline.mermaid
+docs/part3-insight-flow.mermaid

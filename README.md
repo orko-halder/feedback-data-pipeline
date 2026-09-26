@@ -33,10 +33,6 @@ hidden — see [docs/production-gaps.md](docs/production-gaps.md).
                                               ├──▶ ONE Bedrock call ──▶ insights/
                                               └──▶ rule-based quality gate ──▶ quality-review/
 
-Diagrams: [full runbook](docs/pipeline-runbook.mermaid) ·
-[audio path](docs/calls-pipeline.mermaid) ·
-[what triggers what](docs/trigger-chain.mermaid) ·
-[Part 3 internals](docs/part3-insight-flow.mermaid)
 
 ## Four integration patterns, deliberately
 
