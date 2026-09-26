@@ -17,6 +17,8 @@ hidden — see [docs/production-gaps.md](docs/production-gaps.md).
 
 ## The pipeline
 
+![Architecture](docs/architecture.png)
+
     raw-data/reviews/*.json ──▶ Lambda validator ──▶ validation-results/
                                         └──▶ Lambda + Comprehend ──▶ processed-data/reviews/
     raw-data/images/*.png   ──▶ Lambda + Textract ─────────────────▶ processed-data/images/
