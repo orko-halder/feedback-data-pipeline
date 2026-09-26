@@ -1,0 +1,21 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Effect": "Allow", "Action": "s3:GetObject",
+     "Resource": ["arn:aws:s3:::${DATA_BUCKET}/raw-data/surveys/*",
+                  "arn:aws:s3:::${DATA_BUCKET}/processing-code/*"]},
+    {"Effect": "Allow", "Action": "s3:PutObject",
+     "Resource": "arn:aws:s3:::${DATA_BUCKET}/processed-data/surveys/*"},
+    {"Effect": "Allow", "Action": "s3:ListBucket",
+     "Resource": "arn:aws:s3:::${DATA_BUCKET}",
+     "Condition": {"StringLike": {"s3:prefix": ["raw-data/surveys/*", "processing-code/*"]}}},
+    {"Effect": "Allow",
+     "Action": ["ecr:GetAuthorizationToken", "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer", "ecr:BatchGetImage"],
+     "Resource": "*"},
+    {"Effect": "Allow",
+     "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents",
+                "logs:DescribeLogStreams"],
+     "Resource": "arn:aws:logs:${AWS_REGION}:${AWS_ACCOUNT_ID}:log-group:/aws/sagemaker/*"}
+  ]
+}

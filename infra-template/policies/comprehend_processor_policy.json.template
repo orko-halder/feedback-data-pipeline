@@ -1,0 +1,24 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": [
+        "arn:aws:s3:::${DATA_BUCKET}/raw-data/*",
+        "arn:aws:s3:::${DATA_BUCKET}/validation-results/*"
+      ]
+    },
+    {"Effect": "Allow", "Action": "s3:PutObject",
+     "Resource": "arn:aws:s3:::${DATA_BUCKET}/processed-data/*"},
+    {
+      "Effect": "Allow",
+      "Action": [
+        "comprehend:DetectEntities",
+        "comprehend:DetectSentiment",
+        "comprehend:DetectKeyPhrases"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

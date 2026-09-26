@@ -1,0 +1,503 @@
+{
+  "seed": 20260923,
+  "note": "Calls are NOT generated here; call_001/002/003 audio is unchanged and anchors the three issue profiles.",
+  "products": {
+    "EAR-2200": {
+      "name": "Wireless Earbuds",
+      "issue": "stops charging within the first few weeks"
+    },
+    "VAC-3000": {
+      "name": "Robot Vacuum",
+      "issue": "gets stuck under furniture, sensor or firmware fault"
+    },
+    "BLD-4500": {
+      "name": "Smart Blender",
+      "issue": "overheats, burning smell, excessive noise"
+    },
+    "FIT-1000": {
+      "name": "Fitness Tracker",
+      "issue": null
+    },
+    "SPK-1500": {
+      "name": "Bluetooth Speaker",
+      "issue": null
+    }
+  },
+  "expected_themes": [
+    {
+      "product_id": "EAR-2200",
+      "issue": "stops charging within the first few weeks",
+      "channels": [
+        "review",
+        "call",
+        "image",
+        "survey"
+      ],
+      "review_docs": [
+        "review:review_001",
+        "review:review_002",
+        "review:review_003",
+        "review:review_004"
+      ],
+      "survey_rows": 6
+    },
+    {
+      "product_id": "VAC-3000",
+      "issue": "gets stuck under furniture, sensor or firmware fault",
+      "channels": [
+        "review",
+        "call",
+        "image",
+        "survey"
+      ],
+      "review_docs": [
+        "review:review_006",
+        "review:review_007",
+        "review:review_008"
+      ],
+      "survey_rows": 6
+    },
+    {
+      "product_id": "BLD-4500",
+      "issue": "overheats, burning smell, excessive noise",
+      "channels": [
+        "review",
+        "call",
+        "image",
+        "survey"
+      ],
+      "review_docs": [
+        "review:review_010",
+        "review:review_011",
+        "review:review_012"
+      ],
+      "survey_rows": 6
+    }
+  ],
+  "controls": [
+    "FIT-1000",
+    "SPK-1500"
+  ],
+  "planted_rating_mismatches": [
+    "review:review_002",
+    "review:review_009",
+    "review:review_016",
+    "survey:row_9",
+    "survey:row_24"
+  ],
+  "planted_malformed": [
+    {
+      "doc_id": "review:review_003",
+      "defect": "short_text"
+    },
+    {
+      "doc_id": "review:review_007",
+      "defect": "no_product_id"
+    },
+    {
+      "doc_id": "review:review_011",
+      "defect": "rating_out_of_range"
+    },
+    {
+      "doc_id": "review:review_014",
+      "defect": "bad_date"
+    },
+    {
+      "doc_id": "review:review_018",
+      "defect": "no_customer_id"
+    },
+    {
+      "doc_id": "survey:row_6",
+      "defect": "no_customer_id"
+    },
+    {
+      "doc_id": "survey:row_22",
+      "defect": "no_survey_date"
+    }
+  ],
+  "cross_channel_join": {
+    "order_ref": "ORD-9001",
+    "links": [
+      "call:call_001",
+      "image:EAR-2200_CUST-2001"
+    ]
+  },
+  "records": {
+    "reviews": [
+      {
+        "doc_id": "review:review_001",
+        "product_id": "EAR-2200",
+        "tone": "neg",
+        "rating": 2,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_002",
+        "product_id": "EAR-2200",
+        "tone": "neg",
+        "rating": 5,
+        "planted_mismatch": true,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_003",
+        "product_id": "EAR-2200",
+        "tone": "neg",
+        "rating": 2,
+        "planted_mismatch": false,
+        "malformed": "short_text"
+      },
+      {
+        "doc_id": "review:review_004",
+        "product_id": "EAR-2200",
+        "tone": "neg",
+        "rating": 1,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_005",
+        "product_id": "EAR-2200",
+        "tone": "pos",
+        "rating": 4,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_006",
+        "product_id": "VAC-3000",
+        "tone": "neg",
+        "rating": 1,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_007",
+        "product_id": "VAC-3000",
+        "tone": "neg",
+        "rating": 1,
+        "planted_mismatch": false,
+        "malformed": "no_product_id"
+      },
+      {
+        "doc_id": "review:review_008",
+        "product_id": "VAC-3000",
+        "tone": "neg",
+        "rating": 1,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_009",
+        "product_id": "VAC-3000",
+        "tone": "pos",
+        "rating": 1,
+        "planted_mismatch": true,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_010",
+        "product_id": "BLD-4500",
+        "tone": "neg",
+        "rating": 1,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_011",
+        "product_id": "BLD-4500",
+        "tone": "neg",
+        "rating": 6,
+        "planted_mismatch": false,
+        "malformed": "rating_out_of_range"
+      },
+      {
+        "doc_id": "review:review_012",
+        "product_id": "BLD-4500",
+        "tone": "neg",
+        "rating": 2,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_013",
+        "product_id": "BLD-4500",
+        "tone": "pos",
+        "rating": 5,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_014",
+        "product_id": "FIT-1000",
+        "tone": "pos",
+        "rating": 5,
+        "planted_mismatch": false,
+        "malformed": "bad_date"
+      },
+      {
+        "doc_id": "review:review_015",
+        "product_id": "FIT-1000",
+        "tone": "pos",
+        "rating": 5,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_016",
+        "product_id": "FIT-1000",
+        "tone": "pos",
+        "rating": 2,
+        "planted_mismatch": true,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_017",
+        "product_id": "FIT-1000",
+        "tone": "neg",
+        "rating": 2,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_018",
+        "product_id": "SPK-1500",
+        "tone": "pos",
+        "rating": 5,
+        "planted_mismatch": false,
+        "malformed": "no_customer_id"
+      },
+      {
+        "doc_id": "review:review_019",
+        "product_id": "SPK-1500",
+        "tone": "pos",
+        "rating": 5,
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "review:review_020",
+        "product_id": "SPK-1500",
+        "tone": "pos",
+        "rating": 5,
+        "planted_mismatch": false,
+        "malformed": null
+      }
+    ],
+    "images": [
+      {
+        "doc_id": "image:EAR-2200_CUST-2001",
+        "product_id": "EAR-2200",
+        "order_ref": "ORD-9001",
+        "kind": "return_request"
+      },
+      {
+        "doc_id": "image:VAC-3000_CUST-2002",
+        "product_id": "VAC-3000",
+        "order_ref": "ORD-9002",
+        "kind": "return_request"
+      },
+      {
+        "doc_id": "image:BLD-4500_CUST-2003",
+        "product_id": "BLD-4500",
+        "order_ref": "ORD-9003",
+        "kind": "return_request"
+      },
+      {
+        "doc_id": "image:FIT-1000_CUST-2004",
+        "product_id": "FIT-1000",
+        "order_ref": "ORD-9004",
+        "kind": "warranty_registration"
+      },
+      {
+        "doc_id": "image:SPK-1500_CUST-2005",
+        "product_id": "SPK-1500",
+        "order_ref": "ORD-9005",
+        "kind": "warranty_registration"
+      }
+    ],
+    "surveys": [
+      {
+        "doc_id": "survey:row_2",
+        "product_id": "VAC-3000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_3",
+        "product_id": "VAC-3000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_4",
+        "product_id": "SPK-1500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_5",
+        "product_id": "BLD-4500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_6",
+        "product_id": "BLD-4500",
+        "planted_mismatch": false,
+        "malformed": "no_customer_id"
+      },
+      {
+        "doc_id": "survey:row_7",
+        "product_id": "VAC-3000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_8",
+        "product_id": "EAR-2200",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_9",
+        "product_id": "FIT-1000",
+        "planted_mismatch": true,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_10",
+        "product_id": "SPK-1500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_11",
+        "product_id": "BLD-4500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_12",
+        "product_id": "EAR-2200",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_13",
+        "product_id": "SPK-1500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_14",
+        "product_id": "FIT-1000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_15",
+        "product_id": "VAC-3000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_16",
+        "product_id": "EAR-2200",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_17",
+        "product_id": "FIT-1000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_18",
+        "product_id": "VAC-3000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_19",
+        "product_id": "SPK-1500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_20",
+        "product_id": "FIT-1000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_21",
+        "product_id": "EAR-2200",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_22",
+        "product_id": "EAR-2200",
+        "planted_mismatch": false,
+        "malformed": "no_survey_date"
+      },
+      {
+        "doc_id": "survey:row_23",
+        "product_id": "FIT-1000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_24",
+        "product_id": "SPK-1500",
+        "planted_mismatch": true,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_25",
+        "product_id": "EAR-2200",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_26",
+        "product_id": "FIT-1000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_27",
+        "product_id": "BLD-4500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_28",
+        "product_id": "VAC-3000",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_29",
+        "product_id": "BLD-4500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_30",
+        "product_id": "SPK-1500",
+        "planted_mismatch": false,
+        "malformed": null
+      },
+      {
+        "doc_id": "survey:row_31",
+        "product_id": "BLD-4500",
+        "planted_mismatch": false,
+        "malformed": null
+      }
+    ]
+  }
+}

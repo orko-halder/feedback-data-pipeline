@@ -1,0 +1,117 @@
+{
+  "job_name": "feedback-call_001-20260922T195110",
+  "status": "COMPLETED",
+  "source_audio": "raw-data/calls/call_001.mp3",
+  "transcript_key": "transcriptions/call_001.json",
+  "full_transcript": "Thank you for calling customer support. This is Rachel speaking. How can I help you today? Hi, my wireless earbuds stopped charging after about two weeks of use. I'm sorry to hear that. Can you confirm the order number so I can look into a replacement? Sure, it's order 9001. I'd really like a refund if possible. I understand. I have processed a full refund and you will see it within 5 business days.",
+  "speakers": {
+    "spk_0": {
+      "role_guess": "agent",
+      "role_method": "first_speaker"
+    },
+    "spk_1": {
+      "role_guess": "customer",
+      "role_method": "first_speaker"
+    }
+  },
+  "turns": [
+    {
+      "speaker": "spk_0",
+      "start_time": 0.0,
+      "end_time": 4.889,
+      "text": "Thank you for calling customer support. This is Rachel speaking. How can I help you today?"
+    },
+    {
+      "speaker": "spk_1",
+      "start_time": 5.05,
+      "end_time": 9.05,
+      "text": "Hi, my wireless earbuds stopped charging after about two weeks of use."
+    },
+    {
+      "speaker": "spk_0",
+      "start_time": 9.13,
+      "end_time": 13.8,
+      "text": "I'm sorry to hear that. Can you confirm the order number so I can look into a replacement?"
+    },
+    {
+      "speaker": "spk_1",
+      "start_time": 14.05,
+      "end_time": 18.549,
+      "text": "Sure, it's order 9001. I'd really like a refund if possible."
+    },
+    {
+      "speaker": "spk_0",
+      "start_time": 18.649,
+      "end_time": 23.44,
+      "text": "I understand. I have processed a full refund and you will see it within 5 business days."
+    }
+  ],
+  "sentiment": {
+    "customer_overall": {
+      "sentiment": "NEGATIVE",
+      "scores": {
+        "Positive": 0.02083181031048298,
+        "Negative": 0.9046955108642578,
+        "Neutral": 0.06284485757350922,
+        "Mixed": 0.011627857573330402
+      },
+      "method": "comprehend_speaker_concat",
+      "parts": 1,
+      "parts_scored": 1,
+      "turns_used": 2,
+      "truncated": false
+    },
+    "agent_overall": {
+      "sentiment": "POSITIVE",
+      "scores": {
+        "Positive": 0.9586862325668335,
+        "Negative": 0.00017699046293273568,
+        "Neutral": 0.04113313555717468,
+        "Mixed": 3.640086106315721e-06
+      },
+      "method": "comprehend_speaker_concat",
+      "parts": 1,
+      "parts_scored": 1,
+      "turns_used": 3,
+      "truncated": false
+    },
+    "customer_end_state": {
+      "sentiment": "NEGATIVE",
+      "scores": {
+        "Positive": 0.04883271083235741,
+        "Negative": 0.6250402331352234,
+        "Neutral": 0.23870714008808136,
+        "Mixed": 0.08741994947195053
+      },
+      "method": "comprehend_speaker_concat",
+      "parts": 1,
+      "parts_scored": 1,
+      "turns_used": 1,
+      "truncated": false
+    }
+  },
+  "sentiment_docs": [
+    {
+      "slot": "customer_all",
+      "part": 0,
+      "n_turns": 2,
+      "truncated": false,
+      "sentiment": "NEGATIVE"
+    },
+    {
+      "slot": "agent_all",
+      "part": 0,
+      "n_turns": 3,
+      "truncated": false,
+      "sentiment": "POSITIVE"
+    },
+    {
+      "slot": "customer_end",
+      "part": 0,
+      "n_turns": 1,
+      "truncated": false,
+      "sentiment": "NEGATIVE"
+    }
+  ],
+  "sentiment_errors": []
+}

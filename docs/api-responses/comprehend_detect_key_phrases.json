@@ -1,0 +1,34 @@
+{
+    "KeyPhrases": [
+        {
+            "Score": 0.9999242424964905,
+            "Text": "The Wireless Earbuds",
+            "BeginOffset": 0,
+            "EndOffset": 20
+        },
+        {
+            "Score": 0.9999213814735413,
+            "Text": "my expectations",
+            "BeginOffset": 30,
+            "EndOffset": 45
+        },
+        {
+            "Score": 0.9980803728103638,
+            "Text": "battery life",
+            "BeginOffset": 47,
+            "EndOffset": 59
+        },
+        {
+            "Score": 0.998080849647522,
+            "Text": "setup",
+            "BeginOffset": 77,
+            "EndOffset": 82
+        },
+        {
+            "Score": 0.9999558329582214,
+            "Text": "two minutes",
+            "BeginOffset": 88,
+            "EndOffset": 99
+        }
+    ]
+}

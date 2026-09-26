@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Effect": "Allow", "Action": "transcribe:GetTranscriptionJob", "Resource": "*"},
+    {"Effect": "Allow", "Action": "s3:GetObject",
+     "Resource": "arn:aws:s3:::${DATA_BUCKET}/transcriptions/*"},
+    {"Effect": "Allow", "Action": "s3:PutObject",
+     "Resource": "arn:aws:s3:::${DATA_BUCKET}/processed-data/calls/*"},
+    {"Effect": "Allow", "Action": "comprehend:BatchDetectSentiment", "Resource": "*"},
+    {"Effect": "Allow", "Action": "cloudwatch:PutMetricData", "Resource": "*",
+     "Condition": {"StringEquals": {"cloudwatch:namespace": "CustomerFeedback/Calls"}}}
+  ]
+}

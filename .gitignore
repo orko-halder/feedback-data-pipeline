@@ -1,0 +1,15 @@
+# Local runbook: hardcoded account ID, bucket and ARNs for one specific
+# sandbox account. The portable equivalent is infra-template/, committed.
+infra/
+
+# Rendered templates contain the resolved account ID
+infra-template/.build/
+
+lambda/*.zip
+__pycache__/
+*.pyc
+.DS_Store
+
+# Stray zips from create-function runs (temp names have no extension)
+lambda/*.zip
+lambda/zi*

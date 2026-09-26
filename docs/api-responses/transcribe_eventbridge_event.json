@@ -1,0 +1,14 @@
+{
+  "version": "0",
+  "id": "d566936a-520a-9c31-57fc-b2f2d9469de5",
+  "detail-type": "Transcribe Job State Change",
+  "source": "aws.transcribe",
+  "account": "111122223333",
+  "time": "2026-09-21T18:16:15Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "TranscriptionJobName": "feedback-call_001-20260921T181552",
+    "TranscriptionJobStatus": "COMPLETED"
+  }
+}

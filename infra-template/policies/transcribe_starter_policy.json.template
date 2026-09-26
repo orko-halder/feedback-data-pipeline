@@ -1,0 +1,20 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "transcribe:StartTranscriptionJob",
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::${DATA_BUCKET}/raw-data/calls/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::${DATA_BUCKET}/transcriptions/*"
+    }
+  ]
+}

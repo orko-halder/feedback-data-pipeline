@@ -1,0 +1,12 @@
+Rules = [
+    IsComplete "customer_id",
+    ColumnLength "customer_id" > 0,
+    IsComplete "product_id",
+    ColumnLength "product_id" > 0,
+    ColumnValues "product_id" in ["EAR-2200", "BLD-4500", "FIT-1000", "VAC-3000", "SPK-1500"],
+    IsComplete "survey_date",
+    ColumnLength "survey_date" > 0,
+    ColumnValues "product_rating" in [1, 2, 3, 4, 5],
+    ColumnValues "service_rating" in [1, 2, 3, 4, 5],
+    ColumnValues "overall_satisfaction" in ["Very Dissatisfied", "Dissatisfied", "Neutral", "Satisfied", "Very Satisfied"]
+]

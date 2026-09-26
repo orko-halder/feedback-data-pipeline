@@ -1,0 +1,88 @@
+{
+  "LambdaFunctionConfigurations": [
+    {
+      "Id": "trigger-text-validator-on-review-upload",
+      "LambdaFunctionArn": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:feedback-pipeline-text-validator",
+      "Events": [
+        "s3:ObjectCreated:*"
+      ],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            {
+              "Name": "prefix",
+              "Value": "raw-data/reviews/"
+            },
+            {
+              "Name": "suffix",
+              "Value": ".json"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Id": "trigger-comprehend-on-validated-review",
+      "LambdaFunctionArn": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:feedback-pipeline-comprehend-processor",
+      "Events": [
+        "s3:ObjectCreated:*"
+      ],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            {
+              "Name": "prefix",
+              "Value": "validation-results/reviews/"
+            },
+            {
+              "Name": "suffix",
+              "Value": "_validation.json"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Id": "trigger-image-processor-on-image-upload",
+      "LambdaFunctionArn": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:feedback-pipeline-image-processor",
+      "Events": [
+        "s3:ObjectCreated:*"
+      ],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            {
+              "Name": "prefix",
+              "Value": "raw-data/images/"
+            },
+            {
+              "Name": "suffix",
+              "Value": ".png"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Id": "trigger-transcribe-starter-on-call-upload",
+      "LambdaFunctionArn": "arn:aws:lambda:${AWS_REGION}:${AWS_ACCOUNT_ID}:function:feedback-pipeline-transcribe-starter",
+      "Events": [
+        "s3:ObjectCreated:*"
+      ],
+      "Filter": {
+        "Key": {
+          "FilterRules": [
+            {
+              "Name": "prefix",
+              "Value": "raw-data/calls/"
+            },
+            {
+              "Name": "suffix",
+              "Value": ".mp3"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

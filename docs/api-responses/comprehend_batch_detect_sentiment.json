@@ -1,0 +1,55 @@
+{
+  "ResultList": [
+    {
+      "Index": 0,
+      "Sentiment": "POSITIVE",
+      "SentimentScore": {
+        "Positive": 0.8189690113067627,
+        "Negative": 7.663747965125367e-05,
+        "Neutral": 0.18093128502368927,
+        "Mixed": 2.307409704371821e-05
+      }
+    },
+    {
+      "Index": 1,
+      "Sentiment": "NEGATIVE",
+      "SentimentScore": {
+        "Positive": 0.13097772002220154,
+        "Negative": 0.7642570734024048,
+        "Neutral": 0.10313549637794495,
+        "Mixed": 0.0016297254478558898
+      }
+    },
+    {
+      "Index": 2,
+      "Sentiment": "NEUTRAL",
+      "SentimentScore": {
+        "Positive": 0.13053424656391144,
+        "Negative": 0.00046763085993006825,
+        "Neutral": 0.8689907789230347,
+        "Mixed": 7.388970516331028e-06
+      }
+    },
+    {
+      "Index": 3,
+      "Sentiment": "NEGATIVE",
+      "SentimentScore": {
+        "Positive": 0.04883271083235741,
+        "Negative": 0.6250402331352234,
+        "Neutral": 0.23870714008808136,
+        "Mixed": 0.08741994947195053
+      }
+    },
+    {
+      "Index": 4,
+      "Sentiment": "POSITIVE",
+      "SentimentScore": {
+        "Positive": 0.9315140247344971,
+        "Negative": 0.009755938313901424,
+        "Neutral": 0.05824928358197212,
+        "Mixed": 0.00048066864837892354
+      }
+    }
+  ],
+  "ErrorList": []
+}

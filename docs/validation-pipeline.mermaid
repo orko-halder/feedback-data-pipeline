@@ -1,0 +1,58 @@
+flowchart TB
+    GEN["generate_synthetic_data.py<br/>20 reviews, 5 images, 3 calls, 30 survey rows<br/>5 reviews and 2 survey rows deliberately malformed"]
+
+    GEN -->|"aws s3 cp --recursive"| RAW
+
+    subgraph BUCKET["S3 bucket: customer-feedback-analysis"]
+        RAW["raw-data/"]
+        SURVEYS["raw-data/surveys/surveys.csv"]
+        REVIEWS["raw-data/reviews/*.json"]
+        OTHER["raw-data/images/*.png<br/>raw-data/calls/*.mp3<br/>not validated, feed Part 2"]
+        VALRES["validation-results/reviews/*_validation.json<br/>per-record audit trail"]
+    end
+
+    RAW --> SURVEYS
+    RAW --> REVIEWS
+    RAW --> OTHER
+
+    subgraph PATHA["Path A: structured data, schema and column rules"]
+        CRAWLER["Glue Crawler<br/>customer-feedback-crawler<br/>CSV classifier infers schema"]
+        CATALOG["Glue Data Catalog<br/>customer_feedback_db.surveys<br/>metadata only, data stays in S3"]
+        RULESET["Glue DQ ruleset: surveys_ruleset<br/>DQDL: IsComplete, ColumnLength, ColumnValues"]
+        DQRUN["start-data-quality-ruleset-evaluation-run<br/>CloudWatchMetricsEnabled true<br/>Spark job, ~90s"]
+    end
+
+    SURVEYS --> CRAWLER
+    CRAWLER --> CATALOG
+    CATALOG --> RULESET
+    RULESET --> DQRUN
+
+    subgraph PATHB["Path B: unstructured data, per-record content rules"]
+        S3EVT["S3 ObjectCreated event<br/>prefix raw-data/reviews/ suffix .json"]
+        VALIDATOR["Lambda: feedback-pipeline-text-validator<br/>8 checks: 5 field presence, min length,<br/>rating range, date format"]
+    end
+
+    REVIEWS --> S3EVT
+    S3EVT --> VALIDATOR
+    VALIDATOR --> VALRES
+
+    EB["EventBridge rule<br/>source aws.glue-dataquality<br/>Data Quality Evaluation Results Available<br/>no state filter: FAILED still carries a valid score"]
+    PUBLISHER["Lambda: feedback-pipeline-dq-score-publisher<br/>reads score straight off the event"]
+
+    DQRUN -->|"emits event"| EB
+    EB --> PUBLISHER
+
+    subgraph CW["CloudWatch metrics"]
+        CWDQ["CustomerFeedback/DataQuality<br/>RulesetPassRate, dimension Ruleset"]
+        CWTEXT["CustomerFeedback/TextQuality<br/>QualityScore, dimension Source"]
+    end
+
+    PUBLISHER --> CWDQ
+    VALIDATOR --> CWTEXT
+
+    DASH["CloudWatch Dashboard<br/>not built: flat monthly cost, skipped deliberately"]
+    CWDQ -.-> DASH
+    CWTEXT -.-> DASH
+
+    classDef skipped stroke-dasharray: 5 5
+    class DASH,OTHER skipped

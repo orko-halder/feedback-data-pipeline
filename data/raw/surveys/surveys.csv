@@ -1,0 +1,31 @@
+customer_id,product_id,survey_date,product_rating,service_rating,overall_satisfaction,improvement_area,comments
+CUST-3001,VAC-3000,2026-09-23,1,2,Dissatisfied,App reliability,Keeps getting stuck under the sofa.
+CUST-3002,VAC-3000,2026-02-09,1,2,Dissatisfied,App reliability,Needs a firmware fix for the sensors.
+CUST-3003,SPK-1500,2026-08-15,5,2,Satisfied,,
+CUST-3004,BLD-4500,2026-01-09,2,5,Satisfied,Build quality,Burning smell after thirty seconds of use.
+,BLD-4500,2026-05-07,1,5,Neutral,Build quality,Far too loud and it overheats.
+CUST-3006,VAC-3000,2026-09-02,2,4,Neutral,App reliability,Stops mid-clean and I have to rescue it.
+CUST-3007,EAR-2200,2026-02-21,2,2,Dissatisfied,Battery life,Charging case gave up after a fortnight.
+CUST-3008,FIT-1000,2026-02-05,5,5,Dissatisfied,Packaging,Battery life is genuinely a week.
+CUST-3009,SPK-1500,2026-01-19,4,5,Very Satisfied,,
+CUST-3010,BLD-4500,2026-05-18,1,4,Neutral,Build quality,Burning smell after thirty seconds of use.
+CUST-3011,EAR-2200,2026-09-20,1,5,Neutral,Battery life,"Had to return them, would not charge."
+CUST-3012,SPK-1500,2026-08-17,4,4,Satisfied,,
+CUST-3013,FIT-1000,2026-03-27,5,3,Satisfied,Packaging,Happy with it overall.
+CUST-3014,VAC-3000,2026-09-08,2,2,Dissatisfied,App reliability,Needs a firmware fix for the sensors.
+CUST-3015,EAR-2200,2026-03-10,2,3,Neutral,Battery life,"Sound was great while they lasted, which was two weeks."
+CUST-3016,FIT-1000,2026-02-28,5,2,Satisfied,Packaging,Happy with it overall.
+CUST-3017,VAC-3000,2026-09-03,2,3,Neutral,App reliability,Needs a firmware fix for the sensors.
+CUST-3018,SPK-1500,2026-01-10,4,3,Satisfied,,
+CUST-3019,FIT-1000,2026-07-19,4,5,Very Satisfied,Packaging,Happy with it overall.
+CUST-3020,EAR-2200,2026-02-08,2,4,Neutral,Battery life,"Had to return them, would not charge."
+CUST-3021,EAR-2200,,1,2,Dissatisfied,Battery life,"Sound was great while they lasted, which was two weeks."
+CUST-3022,FIT-1000,2026-01-21,5,4,Very Satisfied,Packaging,Happy with it overall.
+CUST-3023,SPK-1500,2026-02-08,1,1,Very Satisfied,,No issues at all.
+CUST-3024,EAR-2200,2026-05-18,2,2,Dissatisfied,Battery life,"Sound was great while they lasted, which was two weeks."
+CUST-3025,FIT-1000,2026-06-25,4,5,Very Satisfied,Packaging,Happy with it overall.
+CUST-3026,BLD-4500,2026-05-05,2,2,Dissatisfied,Build quality,Far too loud and it overheats.
+CUST-3027,VAC-3000,2026-05-05,2,4,Neutral,App reliability,Stops mid-clean and I have to rescue it.
+CUST-3028,BLD-4500,2026-09-16,2,3,Neutral,Build quality,Burning smell after thirty seconds of use.
+CUST-3029,SPK-1500,2026-02-28,5,5,Very Satisfied,,No issues at all.
+CUST-3030,BLD-4500,2026-03-06,2,5,Satisfied,Build quality,Motor cut out and smelled of burning.

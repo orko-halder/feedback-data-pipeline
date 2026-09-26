@@ -1,0 +1,24 @@
+{
+    "TranscriptionJob": {
+        "TranscriptionJobName": "feedback-call_001-20260921T181552",
+        "TranscriptionJobStatus": "COMPLETED",
+        "LanguageCode": "en-US",
+        "MediaSampleRateHertz": 22050,
+        "MediaFormat": "mp3",
+        "Media": {
+            "MediaFileUri": "s3://customer-feedback-analysis/raw-data/calls/call_001.mp3"
+        },
+        "Transcript": {
+            "TranscriptFileUri": "https://s3.us-east-1.amazonaws.com/customer-feedback-analysis/transcriptions/call_001.json"
+        },
+        "StartTime": 1790014552.621,
+        "CreationTime": 1790014552.591,
+        "CompletionTime": 1790014575.632,
+        "Settings": {
+            "ShowSpeakerLabels": true,
+            "MaxSpeakerLabels": 2,
+            "ChannelIdentification": false,
+            "ShowAlternatives": false
+        }
+    }
+}
