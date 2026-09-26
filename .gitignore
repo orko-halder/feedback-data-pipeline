@@ -23,3 +23,8 @@ docs/pipeline-runbook.mermaid
 docs/calls-pipeline.mermaid
 docs/validation-pipeline.mermaid
 docs/part3-insight-flow.mermaid
+
+# Working session state: what is unfinished belongs in my notes, not in the
+# repo's front door. The honest limitations are in README.md and
+# docs/production-gaps.md.
+NEXT_STEPS.md
