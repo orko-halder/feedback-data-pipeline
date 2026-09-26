@@ -24,15 +24,26 @@ def test_severity_classification():
     """The case that broke production: every malformed record scores
     0.875, so the score alone cannot separate fatal from cosmetic."""
     fatal_cases = {
-        "rating out of range": {"review_text": "A perfectly reasonable length review here.",
-                                "product_id": "EAR-2200", "customer_id": "CUST-1",
-                                "rating": 6, "review_date": "2026-03-14"},
-        "missing product_id": {"review_text": "A perfectly reasonable length review here.",
-                               "customer_id": "CUST-1", "rating": 4,
-                               "review_date": "2026-03-14"},
-        "text below min length": {"review_text": "Bad.", "product_id": "EAR-2200",
-                                  "customer_id": "CUST-1", "rating": 2,
-                                  "review_date": "2026-03-14"},
+        "rating out of range": {
+            "review_text": "A perfectly reasonable length review here.",
+            "product_id": "EAR-2200",
+            "customer_id": "CUST-1",
+            "rating": 6,
+            "review_date": "2026-03-14",
+        },
+        "missing product_id": {
+            "review_text": "A perfectly reasonable length review here.",
+            "customer_id": "CUST-1",
+            "rating": 4,
+            "review_date": "2026-03-14",
+        },
+        "text below min length": {
+            "review_text": "Bad.",
+            "product_id": "EAR-2200",
+            "customer_id": "CUST-1",
+            "rating": 2,
+            "review_date": "2026-03-14",
+        },
     }
     for label, review in fatal_cases.items():
         r = validate_review(review)
@@ -42,12 +53,19 @@ def test_severity_classification():
         check(f"...yet still scores 0.875: {label}", r["quality_score"] == 0.875)
 
     advisory_cases = {
-        "malformed date": {"review_text": "A perfectly reasonable length review here.",
-                           "product_id": "EAR-2200", "customer_id": "CUST-1",
-                           "rating": 3, "review_date": "15-09-2026"},
-        "missing customer_id": {"review_text": "A perfectly reasonable length review here.",
-                                "product_id": "EAR-2200", "rating": 3,
-                                "review_date": "2026-03-14"},
+        "malformed date": {
+            "review_text": "A perfectly reasonable length review here.",
+            "product_id": "EAR-2200",
+            "customer_id": "CUST-1",
+            "rating": 3,
+            "review_date": "15-09-2026",
+        },
+        "missing customer_id": {
+            "review_text": "A perfectly reasonable length review here.",
+            "product_id": "EAR-2200",
+            "rating": 3,
+            "review_date": "2026-03-14",
+        },
     }
     for label, review in advisory_cases.items():
         r = validate_review(review)
@@ -78,8 +96,12 @@ def test_missing_field():
         "review_date": "2026-03-14",
     }  # product_id missing
     result = validate_review(review)
-    check("missing product_id: has_product_id == False", result["checks"]["has_product_id"] is False)
-    check("missing product_id: other checks still True", result["checks"]["has_customer_id"] is True)
+    check(
+        "missing product_id: has_product_id == False", result["checks"]["has_product_id"] is False
+    )
+    check(
+        "missing product_id: other checks still True", result["checks"]["has_customer_id"] is True
+    )
     check("missing product_id: quality_score < 1.0", result["quality_score"] < 1.0)
 
 
@@ -93,7 +115,10 @@ def test_short_text():
     }
     result = validate_review(review)
     check("short text: min_length == False", result["checks"]["min_length"] is False)
-    check("short text: has_review_text still True (present, just short)", result["checks"]["has_review_text"] is True)
+    check(
+        "short text: has_review_text still True (present, just short)",
+        result["checks"]["has_review_text"] is True,
+    )
 
 
 def test_out_of_range_rating():
@@ -117,7 +142,10 @@ def test_bad_date_format():
         "review_date": "15-09-2026",
     }
     result = validate_review(review)
-    check("bad date format: valid_date_format == False", result["checks"]["valid_date_format"] is False)
+    check(
+        "bad date format: valid_date_format == False",
+        result["checks"]["valid_date_format"] is False,
+    )
 
 
 if __name__ == "__main__":

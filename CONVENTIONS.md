@@ -49,8 +49,9 @@ before moving on:
 4. **`TEARDOWN.md` updated** with the delete commands for whatever was
    created, in dependency-safe order, marking anything with a standing
    cost.
-5. **`EXAM_NOTES.md` updated** (at the AWS_tutorials root) with any
-   non-obvious behaviour hit along the way, in brief Q&A form.
+5. **Non-obvious behaviour captured** in the published docs — the README
+   "Things that only show up when you run it" list and
+   `docs/production-gaps.md` — rather than left in scrollback.
 
 Never run an `aws` command that creates or configures a resource without
 it landing in both infra copies. A command that only exists in chat

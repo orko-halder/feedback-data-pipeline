@@ -23,8 +23,9 @@ from image_textract_processor import (  # noqa: E402
     parse_metadata_from_key,
 )
 
-REAL_RESPONSE = os.path.join(HERE, "..", "docs", "api-responses",
-                             "textract_analyze_document_forms.json")
+REAL_RESPONSE = os.path.join(
+    HERE, "..", "docs", "api-responses", "textract_analyze_document_forms.json"
+)
 
 FAILURES = []
 
@@ -37,7 +38,7 @@ def check(label, condition):
 
 
 def load_blocks():
-    with open(REAL_RESPONSE) as f:
+    with open(REAL_RESPONSE, encoding="utf-8") as f:
         return json.load(f)["Blocks"]
 
 
@@ -48,8 +49,10 @@ def test_filename_parsing():
 
     # Degrades rather than raising -- a badly named file must not kill the run.
     bad = parse_metadata_from_key("raw-data/images/random_photo.png")
-    check("unparseable name -> empty strings, no exception",
-          bad == {"product_id": "", "customer_id": ""})
+    check(
+        "unparseable name -> empty strings, no exception",
+        bad == {"product_id": "", "customer_id": ""},
+    )
 
 
 def test_extract_lines():
@@ -71,17 +74,17 @@ def test_extract_key_values():
     # "Item arrived with a cracked casing near the power button."
     # If this assertion ever FAILS, AWS improved the service and the
     # workaround in the module docstring can be revisited.
-    check("known truncation: Reason value cut at line break",
-          kv["Reason"] == "Item arrived with a")
+    check("known truncation: Reason value cut at line break", kv["Reason"] == "Item arrived with a")
 
 
 def test_full_text_is_the_safety_net():
     """The truncated content must still reach the FM via full_text."""
     rec = build_processed_record("raw-data/images/EAR-2200_CUST-2001.png", load_blocks())
-    check("full_text contains the truncated continuation",
-          "cracked casing near the power button." in rec["full_text"])
-    check("full_text contains the key line too",
-          "Reason: Item arrived with a" in rec["full_text"])
+    check(
+        "full_text contains the truncated continuation",
+        "cracked casing near the power button." in rec["full_text"],
+    )
+    check("full_text contains the key line too", "Reason: Item arrived with a" in rec["full_text"])
 
 
 def test_untrusted_key_is_named_honestly():
@@ -94,7 +97,14 @@ def test_untrusted_key_is_named_honestly():
 
 def test_record_shape():
     rec = build_processed_record("raw-data/images/EAR-2200_CUST-2001.png", load_blocks())
-    for field in ("image_key", "full_text", "lines", "textract_key_values", "metadata", "block_counts"):
+    for field in (
+        "image_key",
+        "full_text",
+        "lines",
+        "textract_key_values",
+        "metadata",
+        "block_counts",
+    ):
         check(f"record has {field}", field in rec)
     check("block_counts reports LINE count", rec["block_counts"]["LINE"] == 6)
     check("metadata carries product_id", rec["metadata"]["product_id"] == "EAR-2200")

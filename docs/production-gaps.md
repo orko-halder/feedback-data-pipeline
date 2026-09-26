@@ -25,9 +25,9 @@ agree. Everything below is a decision made with a reason, not an oversight.
 | **Partitioned output** (`dt=YYYY-MM-DD/`) | Every run overwrites a flat prefix. No history, no point-in-time comparison, no cheap Athena scan. |
 | **Orchestration** (Step Functions / Glue workflows) | Crawler -> DQ -> Processing -> report is a sequence of terminal commands. Nothing retries, nothing branches, nothing reports where it stopped. |
 | **Prompt caching / batch inference** | The same ~8k-token prompt is re-sent in full on every run. |
-| **n-run evaluation** | Every prompt comparison in EXAM_NOTES is n=1. Run 3 changed recall, precision AND citation hygiene from a change that only removed a field -- that is variance, not causation. |
+| **n-run evaluation** | Every prompt comparison here is n=1. Run 3 changed recall, precision AND citation hygiene from a change that only removed a field -- that is variance, not causation. |
 | Schema versioning on the feedback document | A consumer cannot tell v1 from v2. |
-| Tests in CI | 8 test files, 200+ checks, all run by hand. |
+| Tests in CI | 9 test files, 200+ checks, all run by hand. |
 
 ## What would survive review unchanged
 

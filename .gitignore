@@ -10,6 +10,11 @@ __pycache__/
 *.pyc
 .DS_Store
 
+# Real secrets, but keep the documented template.
+.env
+.env.*
+!.env.example
+
 # Stray zips from create-function runs (temp names have no extension)
 lambda/*.zip
 lambda/zi*

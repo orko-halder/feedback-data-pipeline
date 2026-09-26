@@ -45,7 +45,9 @@ def test_extract_ruleset_names():
         "normal payload: extracts list",
         extract_ruleset_names({"rulesetNames": ["surveys_ruleset"]}) == ["surveys_ruleset"],
     )
-    check("missing rulesetNames key -> empty list", extract_ruleset_names({"state": "FAILED"}) == [])
+    check(
+        "missing rulesetNames key -> empty list", extract_ruleset_names({"state": "FAILED"}) == []
+    )
     check("empty rulesetNames -> empty list", extract_ruleset_names({"rulesetNames": []}) == [])
 
 
@@ -54,7 +56,10 @@ def test_build_metric_data():
     check("metric name is RulesetPassRate", metric["MetricName"] == "RulesetPassRate")
     check("value matches input", metric["Value"] == 0.71)
     check("unit is None", metric["Unit"] == "None")
-    check("dimensions carry the ruleset name", metric["Dimensions"] == [{"Name": "Ruleset", "Value": "surveys_ruleset"}])
+    check(
+        "dimensions carry the ruleset name",
+        metric["Dimensions"] == [{"Name": "Ruleset", "Value": "surveys_ruleset"}],
+    )
 
 
 if __name__ == "__main__":

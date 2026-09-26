@@ -126,6 +126,7 @@ Requires an AWS account, the CLI configured, Python 3.12, and Bedrock model
 access granted for Claude in your region.
 
 ```bash
+pip install -r requirements.txt      # boto3
 export PROJECT_INITIALS=abc          # bucket names are globally unique
 python3 data/generate_feedback_dataset.py
 for s in infra-template/0*.sh infra-template/1*.sh; do bash "$s"; done

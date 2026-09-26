@@ -21,16 +21,16 @@ vs Haiku on the same task" is a measured comparison rather than an opinion.
     python3 processing/quality_review.py --dry-run     # no AWS writes
     python3 processing/quality_review.py               # writes S3 + metric
 """
+
 import argparse
 import json
 import os
 import sys
 from datetime import datetime, timezone
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import feedback_document as fd  # noqa: E402
-
-BUCKET = os.environ.get("DATA_BUCKET", "customer-feedback-analysis")
+# Read at import so functions can reference it, but only *required* at run time
+# (see main) -- importing this module for unit tests must not need a bucket.
+BUCKET = os.environ.get("DATA_BUCKET")
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 REVIEW_PREFIX = "quality-review"
 CW_NAMESPACE = "CustomerFeedback/Quality"
@@ -81,18 +81,22 @@ def assess(doc: dict) -> dict:
     flags = []
     mismatch, divergence = rating_sentiment_mismatch(sentiment, rating)
     if mismatch and divergence >= MIN_RATING_DIVERGENCE:
-        flags.append({
-            "rule": "sentiment_vs_rating",
-            "detail": f"text scored {sentiment} but the customer rated it {rating}/5",
-            "divergence": divergence,
-        })
+        flags.append(
+            {
+                "rule": "sentiment_vs_rating",
+                "detail": f"text scored {sentiment} but the customer rated it {rating}/5",
+                "divergence": divergence,
+            }
+        )
     survey_mismatch, size = survey_label_mismatch(gap)
     if survey_mismatch:
-        flags.append({
-            "rule": "survey_label_vs_ratings",
-            "detail": f"stated satisfaction differs from own ratings by {size} points",
-            "divergence": size,
-        })
+        flags.append(
+            {
+                "rule": "survey_label_vs_ratings",
+                "detail": f"stated satisfaction differs from own ratings by {size} points",
+                "divergence": size,
+            }
+        )
 
     # ESCALATION. The cheap tier decides what it can and names what it cannot.
     if not doc["provenance"]["admissible"]:
@@ -133,8 +137,7 @@ def summarise(verdicts: list) -> dict:
         "mismatch_rate": round(len(flagged) / len(judged), 4) if judged else None,
         "judged": len(judged),
         "flagged": len(flagged),
-        "rules": {"min_rating_divergence": MIN_RATING_DIVERGENCE,
-                  "min_survey_gap": MIN_SURVEY_GAP},
+        "rules": {"min_rating_divergence": MIN_RATING_DIVERGENCE, "min_survey_gap": MIN_SURVEY_GAP},
     }
 
 
@@ -145,35 +148,47 @@ def score_against_truth(verdicts: list, truth: dict) -> dict:
     tp, fn, fp = planted & flagged, planted - flagged, flagged - planted
     precision = len(tp) / len(flagged) if flagged else None
     recall = len(tp) / len(planted) if planted else None
-    f1 = (2 * precision * recall / (precision + recall)
-          if precision and recall else 0.0)
-    return {"planted": sorted(planted), "flagged": sorted(flagged),
-            "true_positives": sorted(tp), "missed": sorted(fn),
-            "false_positives": sorted(fp),
-            "precision": round(precision, 3) if precision is not None else None,
-            "recall": round(recall, 3) if recall is not None else None,
-            "f1": round(f1, 3)}
+    f1 = 2 * precision * recall / (precision + recall) if precision and recall else 0.0
+    return {
+        "planted": sorted(planted),
+        "flagged": sorted(flagged),
+        "true_positives": sorted(tp),
+        "missed": sorted(fn),
+        "false_positives": sorted(fp),
+        "precision": round(precision, 3) if precision is not None else None,
+        "recall": round(recall, 3) if recall is not None else None,
+        "f1": round(f1, 3),
+    }
 
 
 def main():
+    if not BUCKET:
+        raise RuntimeError(
+            "Set DATA_BUCKET to your bucket name "
+            "(e.g. customer-feedback-analysis-<initials>; see infra-template/common.sh)."
+        )
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry-run", action="store_true", help="print only; write nothing")
     args = ap.parse_args()
 
     import boto3
+
     s3 = boto3.client("s3", region_name=REGION)
 
     # Reuse Part 3's collector: same documents, but WITH the signals the prompt
     # withheld -- this tier is exactly the consumer those labels were kept for.
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from build_insight_report import collect_documents
+
     docs = collect_documents(s3)
     verdicts = [assess(d) for d in docs]
     summary = summarise(verdicts)
 
-    truth_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                              "data", "ground_truth.json")
-    scored = score_against_truth(verdicts, json.load(open(truth_path)))
+    truth_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "ground_truth.json"
+    )
+    with open(truth_path, encoding="utf-8") as f:
+        scored = score_against_truth(verdicts, json.load(f))
 
     print(json.dumps(summary, indent=2))
     print("\nscored against the planted mismatches:")
@@ -185,23 +200,36 @@ def main():
         print("\n--- DRY RUN: nothing written ---")
         return
 
-    out = {"generated_at": datetime.now(timezone.utc).isoformat(),
-           "summary": summary, "scored_against_ground_truth": scored,
-           "queue": [v for v in verdicts if v["route"] == "review_queue"],
-           "escalated": [v for v in verdicts if v["route"] == "escalate_to_fm"],
-           "all_verdicts": verdicts}
+    out = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "summary": summary,
+        "scored_against_ground_truth": scored,
+        "queue": [v for v in verdicts if v["route"] == "review_queue"],
+        "escalated": [v for v in verdicts if v["route"] == "escalate_to_fm"],
+        "all_verdicts": verdicts,
+    }
     key = f"{REVIEW_PREFIX}/quality_review.json"
-    s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(out, indent=2),
-                  ContentType="application/json")
+    s3.put_object(
+        Bucket=BUCKET, Key=key, Body=json.dumps(out, indent=2), ContentType="application/json"
+    )
 
     cw = boto3.client("cloudwatch", region_name=REGION)
-    cw.put_metric_data(Namespace=CW_NAMESPACE, MetricData=[
-        {"MetricName": "MismatchRate", "Value": summary["mismatch_rate"] or 0.0,
-         "Unit": "None"},
-        {"MetricName": "RecordsFlagged", "Value": summary["flagged"], "Unit": "Count"},
-        {"MetricName": "RecordsEscalatedToFM",
-         "Value": summary["by_route"].get("escalate_to_fm", 0), "Unit": "Count"},
-    ])
+    cw.put_metric_data(
+        Namespace=CW_NAMESPACE,
+        MetricData=[
+            {
+                "MetricName": "MismatchRate",
+                "Value": summary["mismatch_rate"] or 0.0,
+                "Unit": "None",
+            },
+            {"MetricName": "RecordsFlagged", "Value": summary["flagged"], "Unit": "Count"},
+            {
+                "MetricName": "RecordsEscalatedToFM",
+                "Value": summary["by_route"].get("escalate_to_fm", 0),
+                "Unit": "Count",
+            },
+        ],
+    )
     print(f"\nwrote s3://{BUCKET}/{key} and 3 metrics to {CW_NAMESPACE}")
 
 

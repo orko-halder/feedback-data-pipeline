@@ -23,10 +23,16 @@ def check(label, condition):
 
 
 def row(**over):
-    base = {"customer_id": "CUST-1", "product_id": "EAR-2200",
-            "survey_date": "2026-01-15", "product_rating": "4",
-            "service_rating": "3", "overall_satisfaction": "Satisfied",
-            "improvement_area": "Packaging", "comments": "Good."}
+    base = {
+        "customer_id": "CUST-1",
+        "product_id": "EAR-2200",
+        "survey_date": "2026-01-15",
+        "product_rating": "4",
+        "service_rating": "3",
+        "overall_satisfaction": "Satisfied",
+        "improvement_area": "Packaging",
+        "comments": "Good.",
+    }
     base.update(over)
     return base
 
@@ -46,7 +52,10 @@ def test_parsers():
     check("rating '4.7' -> None (int only, no silent truncation)", sp.parse_rating("4.7") is None)
 
     check("date ISO round-trips", sp.parse_date("2026-01-15") == "2026-01-15")
-    check("date returns a STRING, not datetime (JSON-safe)", isinstance(sp.parse_date("2026-01-15"), str))
+    check(
+        "date returns a STRING, not datetime (JSON-safe)",
+        isinstance(sp.parse_date("2026-01-15"), str),
+    )
     check("date '15/01/2026' -> None", sp.parse_date("15/01/2026") is None)
     check("date '2026-13-01' (month 13) -> None", sp.parse_date("2026-13-01") is None)
     check("date '' -> None", sp.parse_date("") is None)
@@ -57,21 +66,37 @@ def test_severity_split():
     check("clean row: no issues", r["issues"] == [])
     check("clean row: admissible", r["admissible"] is True)
 
-    check("missing customer_id is FATAL",
-          severities(sp.build_record(row(customer_id=" "), 2), "customer_id_present") == [sp.FATAL])
-    check("bad date is FATAL",
-          severities(sp.build_record(row(survey_date="Jan 2026"), 2), "survey_date_valid") == [sp.FATAL])
-    check("rating out of range is FATAL",
-          severities(sp.build_record(row(product_rating="9"), 2), "product_rating_in_1_5") == [sp.FATAL])
-    check("unknown satisfaction label is FATAL",
-          severities(sp.build_record(row(overall_satisfaction="Quite Happy"), 2),
-                     "overall_satisfaction_known_label") == [sp.FATAL])
+    check(
+        "missing customer_id is FATAL",
+        severities(sp.build_record(row(customer_id=" "), 2), "customer_id_present") == [sp.FATAL],
+    )
+    check(
+        "bad date is FATAL",
+        severities(sp.build_record(row(survey_date="Jan 2026"), 2), "survey_date_valid")
+        == [sp.FATAL],
+    )
+    check(
+        "rating out of range is FATAL",
+        severities(sp.build_record(row(product_rating="9"), 2), "product_rating_in_1_5")
+        == [sp.FATAL],
+    )
+    check(
+        "unknown satisfaction label is FATAL",
+        severities(
+            sp.build_record(row(overall_satisfaction="Quite Happy"), 2),
+            "overall_satisfaction_known_label",
+        )
+        == [sp.FATAL],
+    )
 
     r = sp.build_record(row(product_id=""), 2)
-    check("missing product_id is ADVISORY (joinability, not validity)",
-          severities(r, "product_id_present") == [sp.ADVISORY])
-    check("product_id carried onto the record",
-          sp.build_record(row(), 2)["product_id"] == "EAR-2200")
+    check(
+        "missing product_id is ADVISORY (joinability, not validity)",
+        severities(r, "product_id_present") == [sp.ADVISORY],
+    )
+    check(
+        "product_id carried onto the record", sp.build_record(row(), 2)["product_id"] == "EAR-2200"
+    )
 
     r = sp.build_record(row(comments="", improvement_area=""), 2)
     check("empty comments is ADVISORY only", severities(r, "comments_present") == [sp.ADVISORY])
@@ -88,13 +113,18 @@ def test_gap():
     check("p5 s5, 'Very Dissatisfied'(1) -> -4.0", sp.rating_satisfaction_gap([5, 5], 1) == -4.0)
     check("agreement -> 0.0", sp.rating_satisfaction_gap([4, 4], 4) == 0.0)
     check("one rating missing -> uses the other", sp.rating_satisfaction_gap([None, 2], 4) == 2.0)
-    check("both ratings missing -> None, NOT 0.0", sp.rating_satisfaction_gap([None, None], 4) is None)
+    check(
+        "both ratings missing -> None, NOT 0.0", sp.rating_satisfaction_gap([None, None], 4) is None
+    )
     check("no satisfaction label -> None", sp.rating_satisfaction_gap([4, 4], None) is None)
     check("rounded to 2dp", sp.rating_satisfaction_gap([4, 3], 5) == 1.5)
 
     r = sp.build_record(row(product_rating="x", service_rating="y"), 2)
     check("record-level: unparseable ratings -> gap None", r["rating_satisfaction_gap"] is None)
-    check("satisfaction_ordinal maps the label", sp.build_record(row(), 2)["satisfaction_ordinal"] == 4)
+    check(
+        "satisfaction_ordinal maps the label",
+        sp.build_record(row(), 2)["satisfaction_ordinal"] == 4,
+    )
 
 
 def test_summary_and_real_csv():
@@ -104,23 +134,35 @@ def test_summary_and_real_csv():
     check("admission_rate 0.5", s["admission_rate"] == 0.5)
     check("means EXCLUDE inadmissible rows", s["mean_product_rating"] == 4)
     check("issue_counts tallies by check name", s["issue_counts"]["customer_id_present"] == 1)
-    check("empty input -> no crash, admission_rate None", sp.summarise([])["admission_rate"] is None)
+    check(
+        "empty input -> no crash, admission_rate None", sp.summarise([])["admission_rate"] is None
+    )
 
     out = sp.process_csv(CSV)
     s = out["summary"]
     check("real CSV: 30 data rows", s["rows_read"] == 30)
     check("real CSV: exactly the 2 seeded bad rows rejected", s["rejected"] == 2)
-    check("real CSV: rejections are the missing id and the bad date",
-          sorted(i["check"] for r in out["records"] if not r["admissible"] for i in r["issues"]
-                 if i["severity"] == sp.FATAL) == ["customer_id_present", "survey_date_valid"])
+    check(
+        "real CSV: rejections are the missing id and the bad date",
+        sorted(
+            i["check"]
+            for r in out["records"]
+            if not r["admissible"]
+            for i in r["issues"]
+            if i["severity"] == sp.FATAL
+        )
+        == ["customer_id_present", "survey_date_valid"],
+    )
     check("row_number starts at 2 (header is row 1)", out["records"][0]["row_number"] == 2)
-    check("row_numbers are contiguous",
-          [r["row_number"] for r in out["records"]] == list(range(2, 32)))
+    check(
+        "row_numbers are contiguous",
+        [r["row_number"] for r in out["records"]] == list(range(2, 32)),
+    )
     check("source_file recorded", out["source_file"] == "surveys.csv")
-    check("every record has the same keys",
-          len({tuple(sorted(r)) for r in out["records"]}) == 1)
+    check("every record has the same keys", len({tuple(sorted(r)) for r in out["records"]}) == 1)
 
     import json
+
     json.dumps(out)  # raises if anything is not JSON-serialisable
     check("whole output is JSON-serialisable", True)
 

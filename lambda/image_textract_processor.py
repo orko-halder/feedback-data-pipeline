@@ -1,4 +1,4 @@
-"""
+r"""
 Extracts text and structured fields from product feedback images.
 
 API CHOICE: AnalyzeDocument(FORMS) -- CHOSEN FOR EXPOSURE, NOT BECAUSE
@@ -94,9 +94,9 @@ readable document is the caller's job.
 """
 
 import json
-from urllib.parse import unquote_plus
 import os
 import re
+from urllib.parse import unquote_plus
 
 import boto3
 

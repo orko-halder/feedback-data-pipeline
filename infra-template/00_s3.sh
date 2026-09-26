@@ -15,6 +15,6 @@ fi
 
 echo "=== Uploading synthetic data ==="
 # Generate first if data/raw/ is empty:
-#   python3 data/generate_synthetic_data.py --with-audio
+#   python3 data/generate_feedback_dataset.py
 aws s3 cp data/raw/ "s3://${DATA_BUCKET}/${PREFIX_RAW}/" --recursive
 aws s3 ls "s3://${DATA_BUCKET}/${PREFIX_RAW}/" --recursive --summarize | tail -3

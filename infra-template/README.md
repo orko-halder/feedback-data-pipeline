@@ -35,8 +35,11 @@ the table from `02`, `07` needs every Lambda it references to exist.
 Generate source data first if `data/raw/` is empty:
 
 ```bash
-python3 data/generate_synthetic_data.py --with-audio
+python3 data/generate_feedback_dataset.py
 ```
+
+Reviews, images and surveys are regenerated deterministically; the three call
+recordings are pre-committed under `data/raw/calls/` and are not regenerated.
 
 ## How parameterisation works
 

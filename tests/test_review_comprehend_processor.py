@@ -35,8 +35,10 @@ def test_admission_gate():
     check("admissible None -> skip", is_admissible({"admissible": None}) is False)
     # A high score must NOT override a fatal verdict -- the exact bug
     # this replaced.
-    check("high score but not admissible -> skip",
-          is_admissible({"quality_score": 0.875, "admissible": False}) is False)
+    check(
+        "high score but not admissible -> skip",
+        is_admissible({"quality_score": 0.875, "admissible": False}) is False,
+    )
 
 
 def test_key_derivation():
@@ -77,7 +79,9 @@ def test_build_processed_record():
         "rating": 5,
     }
     sentiment = {"Sentiment": "POSITIVE", "SentimentScore": {"Positive": 0.99}}
-    record = build_processed_record(review, [{"Text": "Great"}], sentiment, [{"Text": "Great product"}])
+    record = build_processed_record(
+        review, [{"Text": "Great"}], sentiment, [{"Text": "Great product"}]
+    )
 
     check("sentiment lifted to top level", record["sentiment"] == "POSITIVE")
     check("sentiment scores carried", record["sentiment_scores"] == {"Positive": 0.99})

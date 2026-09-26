@@ -29,6 +29,7 @@ step. Re-running produces byte-identical files.
 
 Usage:  python3 data/generate_feedback_dataset.py
 """
+
 import csv
 import json
 import os
@@ -64,7 +65,9 @@ PRODUCTS = {
             "The cliff sensors seem confused by dark rugs, it stops dead and reports an error.",
             "Needs a firmware update to stop it jamming under low furniture. Support confirmed a known issue.",
         ],
-        "positive": ["Picks up pet hair far better than my old upright, and the app scheduling is handy."],
+        "positive": [
+            "Picks up pet hair far better than my old upright, and the app scheduling is handy."
+        ],
     },
     "BLD-4500": {
         "name": "Smart Blender",
@@ -100,24 +103,33 @@ PRODUCTS = {
 
 # review_index -> (product, tone). 20 reviews, weighted to the three issues.
 REVIEW_PLAN = (
-    [("EAR-2200", "neg")] * 4 + [("EAR-2200", "pos")]
-    + [("VAC-3000", "neg")] * 3 + [("VAC-3000", "pos")]
-    + [("BLD-4500", "neg")] * 3 + [("BLD-4500", "pos")]
-    + [("FIT-1000", "pos")] * 3 + [("FIT-1000", "neg")]
+    [("EAR-2200", "neg")] * 4
+    + [("EAR-2200", "pos")]
+    + [("VAC-3000", "neg")] * 3
+    + [("VAC-3000", "pos")]
+    + [("BLD-4500", "neg")] * 3
+    + [("BLD-4500", "pos")]
+    + [("FIT-1000", "pos")] * 3
+    + [("FIT-1000", "neg")]
     + [("SPK-1500", "pos")] * 3
 )
 
 # Reviews whose RATING deliberately contradicts the text. Part 4 must find
 # exactly these, and flagging anything else is a false positive.
 PLANTED_MISMATCHES = {
-    2: 5,    # scathing earbuds review, 5 stars
-    9: 1,    # positive VACUUM review, 1 star
-    16: 2,   # positive tracker review, 2 stars
+    2: 5,  # scathing earbuds review, 5 stars
+    9: 1,  # positive VACUUM review, 1 star
+    16: 2,  # positive tracker review, 2 stars
 }
 # Malformed records -- the validation layer's work. Kept from v1, moved off
 # the mismatch indices so the two experiments never collide.
-MALFORMED = {3: "short_text", 7: "no_product_id", 11: "rating_out_of_range",
-             14: "bad_date", 18: "no_customer_id"}
+MALFORMED = {
+    3: "short_text",
+    7: "no_product_id",
+    11: "rating_out_of_range",
+    14: "bad_date",
+    18: "no_customer_id",
+}
 
 TONE_RATING = {"neg": (1, 2), "pos": (4, 5)}
 
@@ -130,23 +142,38 @@ COMPLAINT_TEMPLATES = {
 }
 
 SATISFACTION_BY_MEAN = [  # (upper bound, label) -- label DERIVED from ratings
-    (1.5, "Very Dissatisfied"), (2.5, "Dissatisfied"),
-    (3.5, "Neutral"), (4.5, "Satisfied"), (5.1, "Very Satisfied"),
+    (1.5, "Very Dissatisfied"),
+    (2.5, "Dissatisfied"),
+    (3.5, "Neutral"),
+    (4.5, "Satisfied"),
+    (5.1, "Very Satisfied"),
 ]
 
 SURVEY_COMMENTS = {
-    "EAR-2200": ["Charging case gave up after a fortnight.", "Had to return them, would not charge.",
-                 "Sound was great while they lasted, which was two weeks."],
-    "VAC-3000": ["Keeps getting stuck under the sofa.", "Needs a firmware fix for the sensors.",
-                 "Stops mid-clean and I have to rescue it."],
-    "BLD-4500": ["Burning smell after thirty seconds of use.", "Far too loud and it overheats.",
-                 "Motor cut out and smelled of burning."],
+    "EAR-2200": [
+        "Charging case gave up after a fortnight.",
+        "Had to return them, would not charge.",
+        "Sound was great while they lasted, which was two weeks.",
+    ],
+    "VAC-3000": [
+        "Keeps getting stuck under the sofa.",
+        "Needs a firmware fix for the sensors.",
+        "Stops mid-clean and I have to rescue it.",
+    ],
+    "BLD-4500": [
+        "Burning smell after thirty seconds of use.",
+        "Far too loud and it overheats.",
+        "Motor cut out and smelled of burning.",
+    ],
     "FIT-1000": ["Happy with it overall.", "Battery life is genuinely a week.", ""],
     "SPK-1500": ["Great sound for the size.", "No issues at all.", ""],
 }
 IMPROVEMENT_BY_PRODUCT = {
-    "EAR-2200": "Battery life", "VAC-3000": "App reliability", "BLD-4500": "Build quality",
-    "FIT-1000": "Packaging", "SPK-1500": "",
+    "EAR-2200": "Battery life",
+    "VAC-3000": "App reliability",
+    "BLD-4500": "Build quality",
+    "FIT-1000": "Packaging",
+    "SPK-1500": "",
 }
 
 
@@ -166,9 +193,13 @@ def make_reviews(rng) -> list:
         planted = i in PLANTED_MISMATCHES
         if planted:
             rating = PLANTED_MISMATCHES[i]
-        review = {"review_text": text, "product_id": pid,
-                  "customer_id": f"CUST-{1000 + i}", "rating": rating,
-                  "review_date": f"2026-{rng.randint(1, 9):02d}-{rng.randint(1, 28):02d}"}
+        review = {
+            "review_text": text,
+            "product_id": pid,
+            "customer_id": f"CUST-{1000 + i}",
+            "rating": rating,
+            "review_date": f"2026-{rng.randint(1, 9):02d}-{rng.randint(1, 28):02d}",
+        }
 
         defect = MALFORMED.get(i)
         if defect == "short_text":
@@ -182,17 +213,25 @@ def make_reviews(rng) -> list:
         elif defect == "no_customer_id":
             del review["customer_id"]
 
-        with open(os.path.join(REVIEWS_DIR, f"review_{i:03d}.json"), "w") as f:
+        with open(os.path.join(REVIEWS_DIR, f"review_{i:03d}.json"), "w", encoding="utf-8") as f:
             json.dump(review, f, indent=2)
-        truth.append({"doc_id": f"review:review_{i:03d}", "product_id": pid, "tone": tone,
-                      "rating": review.get("rating"), "planted_mismatch": planted,
-                      "malformed": defect})
+        truth.append(
+            {
+                "doc_id": f"review:review_{i:03d}",
+                "product_id": pid,
+                "tone": tone,
+                "rating": review.get("rating"),
+                "planted_mismatch": planted,
+                "malformed": defect,
+            }
+        )
     print(f"Wrote {len(REVIEW_PLAN)} reviews to {REVIEWS_DIR}")
     return truth
 
 
 def make_images() -> list:
     from PIL import Image, ImageDraw, ImageFont  # only needed here
+
     os.makedirs(IMAGES_DIR, exist_ok=True)
     try:
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 22)
@@ -205,14 +244,22 @@ def make_images() -> list:
     truth = []
     for i, (pid, prod) in enumerate(PRODUCTS.items(), start=1):
         cust, order = f"CUST-{2000 + i}", f"ORD-{9000 + i}"
-        text = COMPLAINT_TEMPLATES[pid].format(product=prod["name"], pid=pid, cust=cust, order=order)
+        text = COMPLAINT_TEMPLATES[pid].format(
+            product=prod["name"], pid=pid, cust=cust, order=order
+        )
         img = Image.new("RGB", (640, 420), color=(250, 250, 245))
         d = ImageDraw.Draw(img)
         d.rectangle([10, 10, 630, 410], outline=(60, 60, 60), width=2)
         d.multiline_text((30, 40), text, fill=(20, 20, 20), font=font, spacing=10)
         img.save(os.path.join(IMAGES_DIR, f"{pid}_{cust}.png"))
-        truth.append({"doc_id": f"image:{pid}_{cust}", "product_id": pid, "order_ref": order,
-                      "kind": "return_request" if prod["issue"] else "warranty_registration"})
+        truth.append(
+            {
+                "doc_id": f"image:{pid}_{cust}",
+                "product_id": pid,
+                "order_ref": order,
+                "kind": "return_request" if prod["issue"] else "warranty_registration",
+            }
+        )
     # ORD-9001 is the EAR-2200 return: call_001 says "order nine thousand one",
     # which Transcribe writes as "9001". That is the one CROSS-CHANNEL
     # deterministic join in the dataset -- everything else links by product.
@@ -241,25 +288,37 @@ def make_surveys(rng, n=30) -> list:
             product_rating, service_rating, label = 1, 1, "Very Satisfied"
 
         comments = SURVEY_COMMENTS[pid]
-        row = {"customer_id": f"CUST-{3000 + i}", "product_id": pid,
-               "survey_date": f"2026-{rng.randint(1, 9):02d}-{rng.randint(1, 28):02d}",
-               "product_rating": product_rating, "service_rating": service_rating,
-               "overall_satisfaction": label,
-               "improvement_area": IMPROVEMENT_BY_PRODUCT[pid],
-               "comments": comments[(i - 1) % len(comments)]}
+        row = {
+            "customer_id": f"CUST-{3000 + i}",
+            "product_id": pid,
+            "survey_date": f"2026-{rng.randint(1, 9):02d}-{rng.randint(1, 28):02d}",
+            "product_rating": product_rating,
+            "service_rating": service_rating,
+            "overall_satisfaction": label,
+            "improvement_area": IMPROVEMENT_BY_PRODUCT[pid],
+            "comments": comments[(i - 1) % len(comments)],
+        }
 
         malformed = None
         if i == 5:
-            row["customer_id"] = ""; malformed = "no_customer_id"
+            row["customer_id"] = ""
+            malformed = "no_customer_id"
         if i == 21:
-            row["survey_date"] = ""; malformed = "no_survey_date"
+            row["survey_date"] = ""
+            malformed = "no_survey_date"
 
         rows.append(row)
-        truth.append({"doc_id": f"survey:row_{i + 1}", "product_id": pid,
-                      "planted_mismatch": bool(kind), "malformed": malformed})
+        truth.append(
+            {
+                "doc_id": f"survey:row_{i + 1}",
+                "product_id": pid,
+                "planted_mismatch": bool(kind),
+                "malformed": malformed,
+            }
+        )
 
     out = os.path.join(SURVEYS_DIR, "surveys.csv")
-    with open(out, "w", newline="") as f:
+    with open(out, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader()
         w.writerows(rows)
@@ -276,28 +335,37 @@ def main():
     truth = {
         "seed": SEED,
         "note": "Calls are NOT generated here; call_001/002/003 audio is unchanged "
-                "and anchors the three issue profiles.",
+        "and anchors the three issue profiles.",
         "products": {pid: {"name": p["name"], "issue": p["issue"]} for pid, p in PRODUCTS.items()},
         "expected_themes": [
-            {"product_id": pid, "issue": p["issue"],
-             "channels": ["review", "call", "image", "survey"],
-             "review_docs": [r["doc_id"] for r in reviews
-                             if r["product_id"] == pid and r["tone"] == "neg"],
-             "survey_rows": sum(1 for s in surveys if s["product_id"] == pid)}
-            for pid, p in PRODUCTS.items() if p["issue"]
+            {
+                "product_id": pid,
+                "issue": p["issue"],
+                "channels": ["review", "call", "image", "survey"],
+                "review_docs": [
+                    r["doc_id"] for r in reviews if r["product_id"] == pid and r["tone"] == "neg"
+                ],
+                "survey_rows": sum(1 for s in surveys if s["product_id"] == pid),
+            }
+            for pid, p in PRODUCTS.items()
+            if p["issue"]
         ],
         "controls": [pid for pid, p in PRODUCTS.items() if not p["issue"]],
         "planted_rating_mismatches": (
             [r["doc_id"] for r in reviews if r["planted_mismatch"]]
-            + [s["doc_id"] for s in surveys if s["planted_mismatch"]]),
+            + [s["doc_id"] for s in surveys if s["planted_mismatch"]]
+        ),
         "planted_malformed": (
             [{"doc_id": r["doc_id"], "defect": r["malformed"]} for r in reviews if r["malformed"]]
-            + [{"doc_id": s["doc_id"], "defect": s["malformed"]} for s in surveys if s["malformed"]]),
-        "cross_channel_join": {"order_ref": "ORD-9001",
-                               "links": ["call:call_001", "image:EAR-2200_CUST-2001"]},
+            + [{"doc_id": s["doc_id"], "defect": s["malformed"]} for s in surveys if s["malformed"]]
+        ),
+        "cross_channel_join": {
+            "order_ref": "ORD-9001",
+            "links": ["call:call_001", "image:EAR-2200_CUST-2001"],
+        },
         "records": {"reviews": reviews, "images": images, "surveys": surveys},
     }
-    with open(GROUND_TRUTH, "w") as f:
+    with open(GROUND_TRUTH, "w", encoding="utf-8") as f:
         json.dump(truth, f, indent=2)
     print(f"Wrote ground truth to {GROUND_TRUTH}")
     print(f"  issue products: {[t['product_id'] for t in truth['expected_themes']]}")

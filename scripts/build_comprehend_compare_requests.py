@@ -15,6 +15,7 @@ Usage (from project root):
 Then run the two `aws comprehend batch-detect-sentiment --cli-input-json file://...`
 commands and tee the responses next to the requests.
 """
+
 import json
 import os
 import sys
@@ -28,7 +29,9 @@ DEFAULT_TRANSCRIPT = os.path.join(OUT_DIR, "transcribe_transcript_output.json")
 
 
 def build_requests(turns: list, roles: dict) -> tuple:
-    by_role = lambda r: [t["text"] for t in turns if roles[t["speaker"]]["role_guess"] == r]
+    def by_role(r):
+        return [t["text"] for t in turns if roles[t["speaker"]]["role_guess"] == r]
+
     customer, agent = by_role("customer"), by_role("agent")
     a = {"TextList": [t["text"] for t in turns], "LanguageCode": "en"}
     b = {"TextList": [" ".join(customer), " ".join(agent), customer[-1]], "LanguageCode": "en"}
@@ -36,15 +39,18 @@ def build_requests(turns: list, roles: dict) -> tuple:
 
 
 def main(path: str) -> None:
-    transcript = json.load(open(path))
+    with open(path, encoding="utf-8") as f:
+        transcript = json.load(f)
     turns = merge_turns(transcript["results"].get("audio_segments", []))
     a, b = build_requests(turns, infer_roles(turns))
     for name, req in (("a", a), ("b", b)):
         out = os.path.join(OUT_DIR, f"comprehend_compare_design_{name}_request.json")
-        with open(out, "w") as f:
+        with open(out, "w", encoding="utf-8") as f:
             json.dump(req, f, indent=2)
         billed = sum(max(300, len(s)) for s in req["TextList"])
-        print(f"design {name.upper()}: {len(req['TextList'])} docs, ~{billed} chars billed -> {os.path.relpath(out, ROOT)}")
+        rel = os.path.relpath(out, ROOT)
+        n = len(req["TextList"])
+        print(f"design {name.upper()}: {n} docs, ~{billed} chars billed -> {rel}")
 
 
 if __name__ == "__main__":

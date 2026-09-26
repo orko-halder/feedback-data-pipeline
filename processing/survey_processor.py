@@ -17,6 +17,7 @@ SEVERITY MODEL -- same as the review validator, so 'admissible' means the same
 thing across all four data types: FATAL = the record cannot be trusted
 downstream; ADVISORY = worth recording, still usable.
 """
+
 import argparse
 import csv
 import json
@@ -135,10 +136,14 @@ def summarise(records: list) -> dict:
         "mean_service_rating": mean("service_rating"),
         "mean_satisfaction_ordinal": mean("satisfaction_ordinal"),
         "with_comment": sum(1 for r in admissible if r["has_comment"]),
-        "improvement_areas": dict(Counter(
-            r["improvement_area"] for r in admissible if r["improvement_area"]).most_common()),
-        "issue_counts": dict(Counter(
-            i["check"] for r in records for i in r["issues"]).most_common()),
+        "improvement_areas": dict(
+            Counter(
+                r["improvement_area"] for r in admissible if r["improvement_area"]
+            ).most_common()
+        ),
+        "issue_counts": dict(
+            Counter(i["check"] for r in records for i in r["issues"]).most_common()
+        ),
     }
 
 

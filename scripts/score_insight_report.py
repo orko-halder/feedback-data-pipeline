@@ -15,6 +15,7 @@ theme text, one dataset, one run. It catches a report that missed a planted
 issue or invented one about a control -- the two failures that matter -- not
 subtle differences in wording quality.
 """
+
 import json
 import os
 import sys
@@ -35,8 +36,10 @@ def theme_text(t: dict) -> str:
 
 
 def main(path: str) -> int:
-    truth = json.load(open(TRUTH))
-    doc = json.load(open(path))
+    with open(TRUTH, encoding="utf-8") as f:
+        truth = json.load(f)
+    with open(path, encoding="utf-8") as f:
+        doc = json.load(f)
     report = doc.get("report", doc)
     themes = report.get("themes", [])
     expected = {t["product_id"]: t for t in truth["expected_themes"]}
@@ -52,19 +55,26 @@ def main(path: str) -> int:
     print("RECALL -- planted issues (should all be found)")
     found = 0
     for pid, exp in expected.items():
-        hits = [t for t in themes
-                if (t.get("product_id") == pid
-                    or any(k in theme_text(t) for k in ISSUE_KEYWORDS.get(pid, ())))
-                and any(k in theme_text(t) for k in ISSUE_KEYWORDS.get(pid, ()))]
+        hits = [
+            t
+            for t in themes
+            if (
+                t.get("product_id") == pid
+                or any(k in theme_text(t) for k in ISSUE_KEYWORDS.get(pid, ()))
+            )
+            and any(k in theme_text(t) for k in ISSUE_KEYWORDS.get(pid, ()))
+        ]
         if hits:
             found += 1
             best = max(hits, key=lambda t: len(t.get("doc_ids", [])))
             channels = sorted(set(best.get("channels", [])))
             print(f"  [FOUND]  {pid} ({exp['issue'][:44]})")
             print(f"           theme: {best.get('theme', '')[:70]}")
-            print(f"           severity={best.get('severity')} channels={channels} "
-                  f"docs={len(best.get('doc_ids', []))} "
-                  f"strength={best.get('evidence_strength')} link={best.get('product_link_basis')}")
+            print(
+                f"           severity={best.get('severity')} channels={channels} "
+                f"docs={len(best.get('doc_ids', []))} "
+                f"strength={best.get('evidence_strength')} link={best.get('product_link_basis')}"
+            )
         else:
             print(f"  [MISSED] {pid} ({exp['issue']})")
     print(f"  recall: {found}/{len(expected)}")
@@ -74,13 +84,17 @@ def main(path: str) -> int:
     # A positive or low-severity theme about a control is legitimate; a high or
     # medium severity PROBLEM is an invented issue.
     print("PRECISION -- control products (no serious issue should be claimed)")
-    invented = [t for t in themes
-                if t.get("product_id") in controls
-                and t.get("severity") in ("high", "medium")]
+    invented = [
+        t
+        for t in themes
+        if t.get("product_id") in controls and t.get("severity") in ("high", "medium")
+    ]
     if invented:
         for t in invented:
-            print(f"  [INVENTED] {t.get('product_id')} severity={t.get('severity')}: "
-                  f"{t.get('theme', '')[:70]}")
+            print(
+                f"  [INVENTED] {t.get('product_id')} severity={t.get('severity')}: "
+                f"{t.get('theme', '')[:70]}"
+            )
     else:
         print(f"  clean: no high/medium issue claimed for {sorted(controls)}")
     print()
@@ -114,10 +128,12 @@ def main(path: str) -> int:
     print(f"  product_link_basis: {bases}")
     print()
 
-    verdict_ok = (found == len(expected) and not invented and not hallucinated)
+    verdict_ok = found == len(expected) and not invented and not hallucinated
     print("VERDICT:", "PASS" if verdict_ok else "REVIEW NEEDED")
-    print("Limits: keyword matching, one dataset, one run at temperature 0. "
-          "This catches missed or invented ISSUES, not wording quality.")
+    print(
+        "Limits: keyword matching, one dataset, one run at temperature 0. "
+        "This catches missed or invented ISSUES, not wording quality."
+    )
     return 0 if verdict_ok else 1
 
 

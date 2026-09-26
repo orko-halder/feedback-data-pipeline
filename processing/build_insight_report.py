@@ -24,6 +24,7 @@ order_ref is extracted in feedback_document BEFORE redaction runs here: an
 order number can itself be flagged as PII, and redacting it would destroy the
 only deterministic cross-channel join in the data.
 """
+
 import argparse
 import json
 import os
@@ -34,10 +35,16 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import feedback_document as fd  # noqa: E402
 
-BUCKET = os.environ.get("DATA_BUCKET", "customer-feedback-analysis")
+# Read at import so functions can reference it, but only *required* at run time
+# (see main) -- importing this module for unit tests must not need a bucket.
+BUCKET = os.environ.get("DATA_BUCKET")
 REGION = os.environ.get("AWS_REGION", "us-east-1")
-PROCESSED_PREFIXES = ("processed-data/reviews/", "processed-data/images/",
-                      "processed-data/calls/", "processed-data/surveys/")
+PROCESSED_PREFIXES = (
+    "processed-data/reviews/",
+    "processed-data/images/",
+    "processed-data/calls/",
+    "processed-data/surveys/",
+)
 REPORT_PREFIX = "insights"
 COMPREHEND_PII_MAX_BYTES = 5000
 
@@ -91,35 +98,44 @@ Rules:
 """
 
 OUTPUT_SCHEMA = {
-    "themes": [{
-        "theme": "short description of the problem or praise",
-        "product_id": "SKU or null",
-        "product_link_basis": "stated_id | order_reference | inferred_from_text | none",
-        "severity": "high | medium | low",
-        "channels": ["review", "call", "image", "survey"],
-        "doc_ids": ["doc ids supporting this theme"],
-        "evidence_strength": "single_document | multiple_same_channel | cross_channel",
-        "quote": "one short verbatim quote from one of the cited documents",
-    }],
-    "call_outcomes": [{
-        "doc_id": "call:...",
-        "outcome": "resolved | unresolved | unclear",
-        "basis": "what in the transcript supports this",
-    }],
-    "contradictions": [{
-        "doc_ids": ["..."],
-        "note": "what disagrees with what",
-    }],
-    "recommended_actions": [{
-        "action": "what the business should do",
-        "doc_ids": ["..."],
-        "confidence": "high | medium | low",
-    }],
+    "themes": [
+        {
+            "theme": "short description of the problem or praise",
+            "product_id": "SKU or null",
+            "product_link_basis": "stated_id | order_reference | inferred_from_text | none",
+            "severity": "high | medium | low",
+            "channels": ["review", "call", "image", "survey"],
+            "doc_ids": ["doc ids supporting this theme"],
+            "evidence_strength": "single_document | multiple_same_channel | cross_channel",
+            "quote": "one short verbatim quote from one of the cited documents",
+        }
+    ],
+    "call_outcomes": [
+        {
+            "doc_id": "call:...",
+            "outcome": "resolved | unresolved | unclear",
+            "basis": "what in the transcript supports this",
+        }
+    ],
+    "contradictions": [
+        {
+            "doc_ids": ["..."],
+            "note": "what disagrees with what",
+        }
+    ],
+    "recommended_actions": [
+        {
+            "action": "what the business should do",
+            "doc_ids": ["..."],
+            "confidence": "high | medium | low",
+        }
+    ],
     "coverage_note": "what the evidence does NOT cover, including excluded documents",
 }
 
 
 # ---------------------------------------------------------------- collection
+
 
 def list_processed_keys(s3) -> list:
     keys = []
@@ -162,9 +178,9 @@ def collect_documents(s3) -> list:
 # internal identifier is kept. Internal SKUs, customer codes and order
 # references are not personal data; they are the join keys.
 SAFE_IDENTIFIERS = (
-    re.compile(r"^[A-Z]{2,4}-\d{3,5}$"),      # SKU: EAR-2200, BLD-4500
-    re.compile(r"^CUST-\d+$", re.I),          # internal customer code
-    re.compile(r"^ORD-\d+$", re.I),           # order reference
+    re.compile(r"^[A-Z]{2,4}-\d{3,5}$"),  # SKU: EAR-2200, BLD-4500
+    re.compile(r"^CUST-\d+$", re.I),  # internal customer code
+    re.compile(r"^ORD-\d+$", re.I),  # order reference
 )
 
 
@@ -178,7 +194,7 @@ def filter_entities(text: str, entities: list) -> tuple:
     privacy hole nobody can audit."""
     redact, kept = [], []
     for e in entities:
-        span = text[e["BeginOffset"]:e["EndOffset"]]
+        span = text[e["BeginOffset"] : e["EndOffset"]]
         if is_safe_identifier(span):
             kept.append(span)
         else:
@@ -199,7 +215,7 @@ def redact_spans(text: str, entities: list) -> tuple:
     stay valid. Returns (text, sorted list of types found)."""
     out = text
     for e in sorted(entities, key=lambda e: e["BeginOffset"], reverse=True):
-        out = out[:e["BeginOffset"]] + f"[{e['Type']}]" + out[e["EndOffset"]:]
+        out = out[: e["BeginOffset"]] + f"[{e['Type']}]" + out[e["EndOffset"] :]
     return out, sorted({e["Type"] for e in entities})
 
 
@@ -243,16 +259,19 @@ def redact_documents(comprehend, docs: list) -> dict:
 # contradictions plus a misquote because of it. A derived number in a prompt
 # either gets documented or gets hallucinated. It stays in the processed records,
 # where CODE filters on it deterministically -- which is what arithmetic is for.
-INFERRED_SIGNALS = ("sentiment", "sentiment_confidence", "sentiment_source",
-                    "rating_satisfaction_gap")
+INFERRED_SIGNALS = (
+    "sentiment",
+    "sentiment_confidence",
+    "sentiment_source",
+    "rating_satisfaction_gap",
+)
 
 
 def strip_inferred_signals(docs: list) -> list:
     out = []
     for d in docs:
         copy = json.loads(json.dumps(d))
-        copy["signals"] = {k: v for k, v in copy["signals"].items()
-                           if k not in INFERRED_SIGNALS}
+        copy["signals"] = {k: v for k, v in copy["signals"].items() if k not in INFERRED_SIGNALS}
         out.append(copy)
     return out
 
@@ -260,14 +279,17 @@ def strip_inferred_signals(docs: list) -> list:
 def build_user_message(docs: list, manifest: dict) -> str:
     """One JSON payload, not prose: the documents are data, and a JSON envelope
     makes the boundary between instructions and data unambiguous."""
-    return json.dumps({
-        "task": "Identify what customers are experiencing with each product, "
-                "across all channels. Cite everything.",
-        "product_catalogue": CATALOGUE,
-        "manifest": manifest,
-        "output_schema": OUTPUT_SCHEMA,
-        "documents": docs,
-    }, indent=2)
+    return json.dumps(
+        {
+            "task": "Identify what customers are experiencing with each product, "
+            "across all channels. Cite everything.",
+            "product_catalogue": CATALOGUE,
+            "manifest": manifest,
+            "output_schema": OUTPUT_SCHEMA,
+            "documents": docs,
+        },
+        indent=2,
+    )
 
 
 # ---------------------------------------------------------------- bedrock
@@ -278,11 +300,15 @@ def build_user_message(docs: list, manifest: dict) -> str:
 # you to use an inference profile. The "us." prefix routes within US regions;
 # "global." may route anywhere, which is a data-residency decision, not a
 # performance one.
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID",
-                          "us.anthropic.claude-haiku-4-5-20251001-v1:0")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-haiku-4-5-20251001-v1:0")
 MAX_TOKENS = 8000
-REQUIRED_KEYS = ("themes", "call_outcomes", "contradictions",
-                 "recommended_actions", "coverage_note")
+REQUIRED_KEYS = (
+    "themes",
+    "call_outcomes",
+    "contradictions",
+    "recommended_actions",
+    "coverage_note",
+)
 
 
 def invoke_model(bedrock, system: str, user: str, extra_user: str = None) -> dict:
@@ -301,8 +327,12 @@ def invoke_model(bedrock, system: str, user: str, extra_user: str = None) -> dic
         "system": system,
         "messages": messages,
     }
-    resp = bedrock.invoke_model(modelId=MODEL_ID, body=json.dumps(body),
-                               contentType="application/json", accept="application/json")
+    resp = bedrock.invoke_model(
+        modelId=MODEL_ID,
+        body=json.dumps(body),
+        contentType="application/json",
+        accept="application/json",
+    )
     return json.loads(resp["body"].read())
 
 
@@ -316,7 +346,7 @@ def extract_json(payload: dict) -> tuple:
         start, end = text.find("{"), text.rfind("}")
         if start >= 0 and end > start:
             try:
-                return json.loads(text[start:end + 1]), text, None
+                return json.loads(text[start : end + 1]), text, None
             except json.JSONDecodeError as second:
                 return None, text, str(second)
         return None, text, str(first)
@@ -347,15 +377,27 @@ def cited_ids(report: dict) -> set:
 
 
 def main():
+    if not BUCKET:
+        raise RuntimeError(
+            "Set DATA_BUCKET to your bucket name "
+            "(e.g. customer-feedback-analysis-<initials>; see infra-template/common.sh)."
+        )
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dry-run", action="store_true",
-                    help="assemble and print the prompt; call nothing, spend nothing")
-    ap.add_argument("--no-redact", action="store_true",
-                    help="skip PII redaction (for comparing its effect only)")
+    ap.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="assemble and print the prompt; call nothing, spend nothing",
+    )
+    ap.add_argument(
+        "--no-redact",
+        action="store_true",
+        help="skip PII redaction (for comparing its effect only)",
+    )
     ap.add_argument("--out", default=None, help="also write the prompt locally")
     args = ap.parse_args()
 
     import boto3
+
     s3 = boto3.client("s3", region_name=REGION)
 
     docs = collect_documents(s3)
@@ -371,10 +413,12 @@ def main():
     else:
         comprehend = boto3.client("comprehend", region_name=REGION)
         tally, allowed = redact_documents(comprehend, sent)
-        manifest["pii_redaction"] = {"api": "comprehend:DetectPiiEntities",
-                                     "documents_scanned": len(sent),
-                                     "redactions_by_type": tally,
-                                     "allowlisted_identifiers": allowed}
+        manifest["pii_redaction"] = {
+            "api": "comprehend:DetectPiiEntities",
+            "documents_scanned": len(sent),
+            "redactions_by_type": tally,
+            "allowlisted_identifiers": allowed,
+        }
         print(f"redacted PII in {len(sent)} documents: {tally or 'nothing found'}")
         if allowed:
             print(f"allowlisted (false positives kept): {allowed}")
@@ -383,10 +427,10 @@ def main():
     manifest["signals_withheld"] = list(INFERRED_SIGNALS)
     prompt = build_user_message(for_model, manifest)
     print(json.dumps(manifest, indent=2))
-    print(f"prompt size: {len(prompt):,} chars (~{len(prompt)//4:,} tokens)")
+    print(f"prompt size: {len(prompt):,} chars (~{len(prompt) // 4:,} tokens)")
 
     if args.out:
-        with open(args.out, "w") as f:
+        with open(args.out, "w", encoding="utf-8") as f:
             f.write(prompt)
         print(f"wrote {args.out}")
 
@@ -404,9 +448,12 @@ def main():
         # rerun and usually enough; a second failure is a real problem, not
         # a flake, so the raw text is saved for inspection instead of looping.
         print(f"JSON parse failed ({err}); retrying once with the error")
-        payload = invoke_model(bedrock, SYSTEM_PROMPT, prompt,
-                               extra_user=f"That response was not valid JSON: {err}. "
-                                          "Reply with the JSON object only.")
+        payload = invoke_model(
+            bedrock,
+            SYSTEM_PROMPT,
+            prompt,
+            extra_user=f"That response was not valid JSON: {err}. Reply with the JSON object only.",
+        )
         report, raw, err = extract_json(payload)
 
     usage = payload.get("usage", {})
@@ -414,7 +461,7 @@ def main():
 
     if err:
         bad = os.path.join("/tmp", "bedrock_raw_response.txt")
-        with open(bad, "w") as f:
+        with open(bad, "w", encoding="utf-8") as f:
             f.write(raw)
         raise SystemExit(f"model did not return valid JSON after a retry; raw text in {bad}")
 
@@ -435,15 +482,18 @@ def main():
         "report": report,
     }
     key = f"{REPORT_PREFIX}/insight_report.json"
-    s3.put_object(Bucket=BUCKET, Key=key, Body=json.dumps(out, indent=2),
-                  ContentType="application/json")
+    s3.put_object(
+        Bucket=BUCKET, Key=key, Body=json.dumps(out, indent=2), ContentType="application/json"
+    )
     local = args.out.replace(".json", "_report.json") if args.out else "/tmp/insight_report.json"
-    with open(local, "w") as f:
+    with open(local, "w", encoding="utf-8") as f:
         json.dump(out, f, indent=2)
 
-    print(f"themes: {len(report.get('themes', []))}  "
-          f"actions: {len(report.get('recommended_actions', []))}  "
-          f"contradictions: {len(report.get('contradictions', []))}")
+    print(
+        f"themes: {len(report.get('themes', []))}  "
+        f"actions: {len(report.get('recommended_actions', []))}  "
+        f"contradictions: {len(report.get('contradictions', []))}"
+    )
     print("validation:", problems or "clean")
     print(f"wrote s3://{BUCKET}/{key} and {local}")
 

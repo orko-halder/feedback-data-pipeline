@@ -53,13 +53,14 @@ def test_media_format():
 def test_job_name():
     name = build_job_name("raw-data/calls/call_001.mp3", NOW)
     check("stem + timestamp", name == "feedback-call_001-20260921T101500")
-    check("deterministic for a fixed clock",
-          build_job_name("raw-data/calls/call_001.mp3", NOW) == name)
+    check(
+        "deterministic for a fixed clock",
+        build_job_name("raw-data/calls/call_001.mp3", NOW) == name,
+    )
 
     messy = build_job_name("raw-data/calls/my call (final).mp3", NOW)
     check("disallowed chars replaced", messy == "feedback-my-call--final--20260921T101500")
-    check("only [0-9a-zA-Z._-] remain",
-          all(c.isalnum() or c in "._-" for c in messy))
+    check("only [0-9a-zA-Z._-] remain", all(c.isalnum() or c in "._-" for c in messy))
 
     long_name = build_job_name("raw-data/calls/" + "x" * 500 + ".mp3", NOW)
     check(f"500-char stem truncated to <= {JOB_NAME_MAX}", len(long_name) <= JOB_NAME_MAX)
@@ -76,15 +77,20 @@ def test_output_key():
 
 def test_request_shape():
     req = build_start_job_request("customer-feedback-analysis", "raw-data/calls/call_001.mp3", NOW)
-    check("MediaFileUri is s3://bucket/key",
-          req["Media"]["MediaFileUri"] == "s3://customer-feedback-analysis/raw-data/calls/call_001.mp3")
+    check(
+        "MediaFileUri is s3://bucket/key",
+        req["Media"]["MediaFileUri"]
+        == "s3://customer-feedback-analysis/raw-data/calls/call_001.mp3",
+    )
     check("MediaFormat mp3", req["MediaFormat"] == "mp3")
     check("output bucket = input bucket", req["OutputBucketName"] == "customer-feedback-analysis")
     check("speaker labels ON", req["Settings"]["ShowSpeakerLabels"] is True)
     check("max 2 speakers (agent + customer)", req["Settings"]["MaxSpeakerLabels"] == 2)
     check("language en-US", req["LanguageCode"] == "en-US")
-    check("unsupported file -> None, no request built",
-          build_start_job_request("b", "raw-data/calls/notes.txt", NOW) is None)
+    check(
+        "unsupported file -> None, no request built",
+        build_start_job_request("b", "raw-data/calls/notes.txt", NOW) is None,
+    )
 
 
 if __name__ == "__main__":

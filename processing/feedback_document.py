@@ -17,10 +17,12 @@ Deliberately NOT carried across:
   - sentiment_docs, block_counts, row_number, parts_scored -- plumbing
   - turn timings -- the rendered dialogue keeps the meaning
   - entities / key_phrases -- extraction OF text the model reads in full
-  - textract_key_values -- demonstrably unreliable (see EXAM_NOTES Textract).
+  - textract_key_values -- demonstrably unreliable (see README, "Textract FORMS
+    key/values were audited and rejected").
     Unreliable STRUCTURE is worse than none: it invites the model to treat a
     phantom key as a fact. full_text plus a trust note is the honest handover.
 """
+
 import json
 import os
 import re
@@ -39,7 +41,7 @@ SOURCE_SURVEY = "survey"
 # Extracted BEFORE any PII redaction: an order number can itself be flagged as
 # PII, and redacting it would destroy the join.
 ORDER_PATTERNS = (
-    re.compile(r"\bORD[- ]?(\d{3,})\b", re.I),          # "Order #ORD-9001"
+    re.compile(r"\bORD[- ]?(\d{3,})\b", re.I),  # "Order #ORD-9001"
     re.compile(r"\border\s*(?:#|no\.?|number)?\s*(\d{3,})\b", re.I),  # "order 9001"
 )
 
@@ -54,8 +56,17 @@ def extract_order_ref(text: str):
     return None
 
 
-def _doc(doc_id, source_type, source_key, text, signals, provenance,
-         customer_id=None, product_id=None, occurred_on=None) -> dict:
+def _doc(
+    doc_id,
+    source_type,
+    source_key,
+    text,
+    signals,
+    provenance,
+    customer_id=None,
+    product_id=None,
+    occurred_on=None,
+) -> dict:
     """Single constructor so every source produces IDENTICAL keys -- a missing
     key in one source type would make the batch prompt ragged."""
     return {
@@ -105,7 +116,9 @@ def from_review(record: dict, source_key: str) -> dict:
         text=record.get("original_text", ""),
         signals={
             "sentiment": record.get("sentiment"),
-            "sentiment_confidence": _top_score(record.get("sentiment_scores", {}), record.get("sentiment")),
+            "sentiment_confidence": _top_score(
+                record.get("sentiment_scores", {}), record.get("sentiment")
+            ),
             "sentiment_source": "comprehend",
             "rating": meta.get("rating"),
         },
@@ -135,11 +148,15 @@ def from_call(record: dict, source_key: str) -> dict:
     methods = {r.get("role_method") for r in roles.values()}
     notes = []
     if "first_speaker" in methods:
-        notes.append("speaker roles are a POSITIONAL GUESS (first speaker assumed to be the agent), "
-                     "not channel-verified -- treat attribution as uncertain")
+        notes.append(
+            "speaker roles are a POSITIONAL GUESS (first speaker assumed to be the agent), "
+            "not channel-verified -- treat attribution as uncertain"
+        )
     if any(r.get("role_guess") == "unknown" for r in roles.values()):
         notes.append("speaker roles could not be inferred; attribution is unknown")
-    truncated = any(v.get("truncated") for v in record.get("sentiment", {}).values() if isinstance(v, dict))
+    truncated = any(
+        v.get("truncated") for v in record.get("sentiment", {}).values() if isinstance(v, dict)
+    )
     return _doc(
         doc_id=f"{SOURCE_CALL}:{_stem(record.get('source_audio', source_key))}",
         source_type=SOURCE_CALL,
@@ -147,13 +164,18 @@ def from_call(record: dict, source_key: str) -> dict:
         text=render_turns(record.get("turns", []), roles),
         signals={
             "sentiment": customer.get("sentiment"),
-            "sentiment_confidence": _top_score(customer.get("scores", {}), customer.get("sentiment")),
+            "sentiment_confidence": _top_score(
+                customer.get("scores", {}), customer.get("sentiment")
+            ),
             # The CUSTOMER's sentiment only -- the agent's is scripted-positive
             # whatever happens, so averaging both would flatten every call.
             "sentiment_source": "comprehend/customer_turns",
         },
-        provenance={"admissible": record.get("status") == "COMPLETED",
-                    "truncated": bool(truncated), "trust_notes": notes},
+        provenance={
+            "admissible": record.get("status") == "COMPLETED",
+            "truncated": bool(truncated),
+            "trust_notes": notes,
+        },
     )
 
 
@@ -194,11 +216,14 @@ def from_image(record: dict, source_key: str) -> dict:
         source_key=source_key,
         text=record.get("full_text", ""),
         signals={},  # no sentiment was ever computed for images
-        provenance={"admissible": True, "trust_notes": [
-            "text is OCR output and may contain recognition errors",
-            "no key/value structure is provided: Textract FORMS output was tested "
-            "and found unreliable on these documents",
-        ]},
+        provenance={
+            "admissible": True,
+            "trust_notes": [
+                "text is OCR output and may contain recognition errors",
+                "no key/value structure is provided: Textract FORMS output was tested "
+                "and found unreliable on these documents",
+            ],
+        },
         customer_id=meta.get("customer_id"),
         product_id=meta.get("product_id"),
     )

@@ -67,6 +67,7 @@ HANDLED_STATUSES = {"COMPLETED", "FAILED"}
 
 # ---------------------------------------------------------------- pure logic
 
+
 def job_status(detail: dict):
     """Returns COMPLETED / FAILED, or None for anything we don't act on."""
     status = detail.get("TranscriptionJobStatus")
@@ -85,10 +86,10 @@ def parse_s3_uri(uri: str):
         return p.netloc, unquote(p.path.lstrip("/"))
     host = p.netloc
     path = unquote(p.path.lstrip("/"))
-    if host.startswith("s3.") or host.startswith("s3-"):        # path-style
+    if host.startswith("s3.") or host.startswith("s3-"):  # path-style
         bucket, _, key = path.partition("/")
         return bucket, key
-    return host.split(".s3.")[0], path                          # virtual-hosted
+    return host.split(".s3.")[0], path  # virtual-hosted
 
 
 def stem_of(key: str) -> str:
@@ -112,12 +113,14 @@ def merge_turns(audio_segments: list) -> list:
             turns[-1]["text"] += " " + text
             turns[-1]["end_time"] = float(seg["end_time"])
         else:
-            turns.append({
-                "speaker": speaker,
-                "start_time": float(seg["start_time"]),
-                "end_time": float(seg["end_time"]),
-                "text": text,
-            })
+            turns.append(
+                {
+                    "speaker": speaker,
+                    "start_time": float(seg["start_time"]),
+                    "end_time": float(seg["end_time"]),
+                    "text": text,
+                }
+            )
     return turns
 
 
@@ -150,10 +153,16 @@ def pack_turns(texts: list, max_bytes: int = COMPREHEND_MAX_BYTES) -> list:
     chunks = []
     for text in texts:
         if len(text.encode("utf-8")) > max_bytes:
-            chunks.append({"text": truncate_bytes(text, max_bytes), "n_turns": 1, "truncated": True})
+            chunks.append(
+                {"text": truncate_bytes(text, max_bytes), "n_turns": 1, "truncated": True}
+            )
             continue
         last = chunks[-1] if chunks else None
-        if last and not last["truncated"] and len((last["text"] + " " + text).encode("utf-8")) <= max_bytes:
+        if (
+            last
+            and not last["truncated"]
+            and len((last["text"] + " " + text).encode("utf-8")) <= max_bytes
+        ):
             last["text"] += " " + text
             last["n_turns"] += 1
         else:
@@ -164,26 +173,30 @@ def pack_turns(texts: list, max_bytes: int = COMPREHEND_MAX_BYTES) -> list:
 def build_sentiment_docs(turns: list, roles: dict, max_bytes: int = COMPREHEND_MAX_BYTES) -> list:
     """Design B: one document set per speaker role, not one per turn.
 
-    Measured on call_001 (see EXAM_NOTES 'Call sentiment -- per turn vs per
-    speaker'): joining a speaker's turns gave Comprehend context (NEGATIVE 0.90
+    Measured on call_001: joining a speaker's turns gave Comprehend context (NEGATIVE 0.90
     vs 0.70 averaged per turn) at 40% fewer billed units (300-char minimum per doc).
 
     Comprehend has no speaker field -- each doc carries its slot here, and results
     are re-attached by Index. Unknown roles -> [] (nothing to attribute, send nothing).
     """
+
     def texts_for(role):
         return [t["text"] for t in turns if roles.get(t["speaker"], {}).get("role_guess") == role]
 
     customer, agent = texts_for("customer"), texts_for("agent")
     docs = []
-    for slot, texts in (("customer_all", customer), ("agent_all", agent), ("customer_end", customer[-1:])):
+    for slot, texts in (
+        ("customer_all", customer),
+        ("agent_all", agent),
+        ("customer_end", customer[-1:]),
+    ):
         for part, chunk in enumerate(pack_turns(texts, max_bytes)):
             docs.append({"slot": slot, "part": part, **chunk})
     return docs
 
 
 def batch_chunks(items: list, size: int = BATCH_LIMIT) -> list:
-    return [items[i:i + size] for i in range(0, len(items), size)]
+    return [items[i : i + size] for i in range(0, len(items), size)]
 
 
 def apply_batch_results(items: list, offset: int, response: dict) -> list:
@@ -226,8 +239,11 @@ def call_sentiment_summary(docs: list) -> dict:
             continue
         weights = [len(d["text"].encode("utf-8")) for d in scored]
         total = sum(weights)
-        scores = {k: sum(d["sentiment_scores"][k] * w for d, w in zip(scored, weights)) / total
-                  for k in SCORE_KEYS}
+        scores = {
+            k: sum(d["sentiment_scores"][k] * w for d, w in zip(scored, weights, strict=True))
+            / total
+            for k in SCORE_KEYS
+        }
         out[name] = {
             "sentiment": max(scores, key=scores.get).upper(),
             "scores": scores,
@@ -240,8 +256,9 @@ def call_sentiment_summary(docs: list) -> dict:
     return out
 
 
-def build_processed_record(job: dict, transcript: dict, turns: list, roles: dict,
-                           docs: list, errors: list) -> dict:
+def build_processed_record(
+    job: dict, transcript: dict, turns: list, roles: dict, docs: list, errors: list
+) -> dict:
     _, audio_key = parse_s3_uri(job["Media"]["MediaFileUri"])
     _, transcript_key = parse_s3_uri(job["Transcript"]["TranscriptFileUri"])
     return {
@@ -274,6 +291,7 @@ def build_failure_record(job: dict) -> dict:
 
 # ---------------------------------------------------------------- handler
 
+
 def lambda_handler(event, context):
     transcribe = boto3.client("transcribe")
     s3 = boto3.client("s3")
@@ -283,24 +301,38 @@ def lambda_handler(event, context):
     detail = event.get("detail", {})
     status = job_status(detail)
     if status is None:
-        return {"statusCode": 200, "body": json.dumps(f"Ignored status {detail.get('TranscriptionJobStatus')}")}
+        return {
+            "statusCode": 200,
+            "body": json.dumps(f"Ignored status {detail.get('TranscriptionJobStatus')}"),
+        }
 
-    job = transcribe.get_transcription_job(
-        TranscriptionJobName=detail["TranscriptionJobName"]
-    )["TranscriptionJob"]
+    job = transcribe.get_transcription_job(TranscriptionJobName=detail["TranscriptionJobName"])[
+        "TranscriptionJob"
+    ]
     bucket, _ = parse_s3_uri(job["Media"]["MediaFileUri"])
 
     # Every job, success or failure, counts toward a failure RATE.
-    cloudwatch.put_metric_data(Namespace=CW_NAMESPACE, MetricData=[{
-        "MetricName": "TranscriptionJobs", "Value": 1, "Unit": "Count",
-        "Dimensions": [{"Name": "Status", "Value": status}],
-    }])
+    cloudwatch.put_metric_data(
+        Namespace=CW_NAMESPACE,
+        MetricData=[
+            {
+                "MetricName": "TranscriptionJobs",
+                "Value": 1,
+                "Unit": "Count",
+                "Dimensions": [{"Name": "Status", "Value": status}],
+            }
+        ],
+    )
 
     if status == "FAILED":
         record = build_failure_record(job)
         key = f"{FAILED_PREFIX}/{job['TranscriptionJobName']}.json"
-        s3.put_object(Bucket=bucket, Key=key, Body=json.dumps(record, indent=2),
-                      ContentType="application/json")
+        s3.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=json.dumps(record, indent=2),
+            ContentType="application/json",
+        )
         return {"statusCode": 200, "body": json.dumps({"failure_recorded": key})}
 
     t_bucket, t_key = parse_s3_uri(job["Transcript"]["TranscriptFileUri"])
@@ -321,6 +353,10 @@ def lambda_handler(event, context):
     record = build_processed_record(job, transcript, turns, roles, docs, errors)
     _, audio_key = parse_s3_uri(job["Media"]["MediaFileUri"])
     out_key = f"{OUTPUT_PREFIX}/{stem_of(audio_key)}_processed.json"
-    s3.put_object(Bucket=bucket, Key=out_key, Body=json.dumps(record, indent=2),
-                  ContentType="application/json")
+    s3.put_object(
+        Bucket=bucket,
+        Key=out_key,
+        Body=json.dumps(record, indent=2),
+        ContentType="application/json",
+    )
     return {"statusCode": 200, "body": json.dumps({"processed": out_key})}

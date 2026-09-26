@@ -62,7 +62,7 @@ def is_admissible(validation_result: dict) -> bool:
 
 def derive_raw_key(validation_key: str) -> str:
     """validation-results/reviews/review_011_validation.json
-       -> raw-data/reviews/review_011.json"""
+    -> raw-data/reviews/review_011.json"""
     return validation_key.replace("validation-results/reviews", "raw-data/reviews").replace(
         "_validation.json", ".json"
     )
@@ -70,7 +70,7 @@ def derive_raw_key(validation_key: str) -> str:
 
 def derive_processed_key(validation_key: str) -> str:
     """validation-results/reviews/review_011_validation.json
-       -> processed-data/reviews/review_011_processed.json"""
+    -> processed-data/reviews/review_011_processed.json"""
     return validation_key.replace("validation-results/reviews", "processed-data/reviews").replace(
         "_validation.json", "_processed.json"
     )
@@ -86,7 +86,9 @@ def truncate_for_comprehend(text: str, max_bytes: int = COMPREHEND_MAX_BYTES) ->
     return encoded[:max_bytes].decode("utf-8", errors="ignore")
 
 
-def build_processed_record(review: dict, entities: list, sentiment: dict, key_phrases: list) -> dict:
+def build_processed_record(
+    review: dict, entities: list, sentiment: dict, key_phrases: list
+) -> dict:
     """Pure assembly of the enriched record. Kept separate from the
     API calls so the output shape can be tested without AWS."""
     return {
@@ -144,4 +146,7 @@ def lambda_handler(event, context):
         ContentType="application/json",
     )
 
-    return {"statusCode": 200, "body": json.dumps({"processed": derive_processed_key(validation_key)})}
+    return {
+        "statusCode": 200,
+        "body": json.dumps({"processed": derive_processed_key(validation_key)}),
+    }

@@ -49,9 +49,9 @@ customer, it would become FATAL.
 """
 
 import json
-from urllib.parse import unquote_plus
 import re
 from datetime import datetime
+from urllib.parse import unquote_plus
 
 import boto3
 
@@ -62,10 +62,10 @@ MIN_REVIEW_LENGTH = 10
 # A failed check in this set blocks the record from downstream processing,
 # whatever the aggregate score says.
 FATAL_CHECKS = {
-    "has_review_text",   # nothing for Comprehend to analyse
-    "has_product_id",    # cannot attribute the feedback to anything
-    "min_length",        # too short to yield signal; still costs an API call
-    "rating_in_range",   # corrupts any downstream arithmetic
+    "has_review_text",  # nothing for Comprehend to analyse
+    "has_product_id",  # cannot attribute the feedback to anything
+    "min_length",  # too short to yield signal; still costs an API call
+    "rating_in_range",  # corrupts any downstream arithmetic
 }
 
 
