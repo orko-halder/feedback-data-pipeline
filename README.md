@@ -53,6 +53,22 @@ planted defect, two clean controls, five planted rating/sentiment mismatches
 named by document id. Both the model and the rule-based gate are scored against
 the same records.
 
+**Where the 58 records go**
+
+The dataset is 58 raw records (20 reviews + 5 scanned forms + 3 calls + 30
+survey rows). Not all of them reach Bedrock, and each drop is a logged
+decision, not data loss:
+
+| Stage | Count | What drops, and why |
+|---|---|---|
+| Raw sources | 58 | `raw-data/` |
+| Reaches `processed-data/` | 55 | 3 reviews fail a FATAL check in [`lambda/text_validator.py`](lambda/text_validator.py) and are never written: `review_003` (text is "Bad.", under the 10-character minimum), `review_007` (no `product_id` to attribute it to), `review_011` (`rating: 6`, out of the 1-5 range) |
+| Sent to Bedrock | 47 | 6 more excluded in `admissible_only()` ([`processing/feedback_document.py`](processing/feedback_document.py)): 2 survey rows fail a FATAL Glue DQ check (blank `customer_id`, blank `survey_date`); 4 more pass DQ (`comments_present` is only ADVISORY) but have an empty `comments` field, so there is no text for the model to read. The remaining 2 were not re-verified against a live run's S3 output. |
+
+`manifest()` records `documents_total`, `documents_sent` and `excluded`
+alongside every run, so this shrinkage is visible in the output itself, not
+just in this table.
+
 **Finding cross-channel issues (Claude Haiku 4.5, 47 documents, one call)**
 
 | Check | Result |
